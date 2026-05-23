@@ -1305,7 +1305,7 @@ const CATS_NEGOCIO = [
 // CONFIGURACIÓN GOOGLE SHEETS — EDITA AQUÍ
 // ══════════════════════════════════════════════════
 const GS_CONFIG = {
-  scriptUrl: '', // Pega aquí tu URL del Apps Script
+  scriptUrl: 'https://script.google.com/macros/s/AKfycbylt5NTaAehQ2uL4P9M3h0Kn-L5ibphLXcKcLjSNl3PSqioqsBj7LeNColiq7QVA2IZNg/exec'
 };
 
 let state = {
@@ -1359,6 +1359,12 @@ async function cloudLoad() {
       state.presupuestos = data.presupuestos;
       localStorage.setItem('fm_budgets', JSON.stringify(data.presupuestos));
     }
+    if (data && data.cc1) {
+      localStorage.setItem('fm_cc_gastos_1', JSON.stringify(data.cc1));
+    }
+    if (data && data.cc2) {
+      localStorage.setItem('fm_cc_gastos_2', JSON.stringify(data.cc2));
+    }
     state.lastSync = new Date();
     state.cloudEnabled = true;
     setSyncStatus('ok');
@@ -1377,9 +1383,13 @@ async function cloudSave() {
   if (!isCloudEnabled()) return;
   try {
     setSyncStatus('saving');
+    const cc1 = JSON.parse(localStorage.getItem('fm_cc_gastos_1') || '[]');
+    const cc2 = JSON.parse(localStorage.getItem('fm_cc_gastos_2') || '[]');
     const payload = {
       movimientos: state.movimientos,
       presupuestos: state.presupuestos,
+      cc1: cc1,
+      cc2: cc2,
     };
     const data = await jsonpRequest(
       GS_CONFIG.scriptUrl + '?data=' + encodeURIComponent(JSON.stringify(payload))
@@ -1447,6 +1457,8 @@ window.onload = async function() {
       renderDashboard();
       renderMovimientos();
       renderBudgetUI();
+      renderTarjetaCard(1);
+      renderTarjetaCard(2);
     }
   } else {
     const el = document.getElementById('syncStatus');
