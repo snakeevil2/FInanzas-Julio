@@ -672,6 +672,7 @@
   </div>
   <div style="display:flex;align-items:center;gap:12px;">
     <div id="syncStatus" style="font-size:0.75rem;color:rgba(255,255,255,0.9);"></div>
+    <button onclick="manualSync()" title="Sincronizar ahora" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);border-radius:20px;color:rgba(255,255,255,0.9);font-size:0.75rem;padding:5px 12px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.25)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">⟳ Sincronizar</button>
     <div class="header-date" id="headerDate"></div>
   </div>
 </header>
@@ -1376,6 +1377,25 @@ async function cloudLoad() {
   }
 }
 
+async function manualSync() {
+  if (!isCloudEnabled()) {
+    showToast('⚠️ Cloud no configurado');
+    return;
+  }
+  setSyncStatus('loading');
+  const loaded = await cloudLoad();
+  if (loaded) {
+    renderDashboard();
+    renderMovimientos();
+    renderBudgetUI();
+    renderTarjetaCard(1);
+    renderTarjetaCard(2);
+    showToast('☁️ Datos sincronizados desde la nube ✓');
+  } else {
+    showToast('⚠️ No se pudo conectar a la nube');
+  }
+}
+
 async function cloudSave() {
   // Guardar local siempre primero (instantáneo)
   localStorage.setItem('fm_movs', JSON.stringify(state.movimientos));
@@ -1449,7 +1469,7 @@ window.onload = async function() {
   renderTarjetaCard(1);
   renderTarjetaCard(2);
 
-  // Then load from cloud and refresh
+  // Load from cloud and refresh all views
   if (isCloudEnabled()) {
     setSyncStatus('loading');
     const loaded = await cloudLoad();
@@ -1459,10 +1479,11 @@ window.onload = async function() {
       renderBudgetUI();
       renderTarjetaCard(1);
       renderTarjetaCard(2);
+      showToast('☁️ Datos cargados desde la nube ✓');
     }
   } else {
     const el = document.getElementById('syncStatus');
-    if(el) el.innerHTML = '<span style="color:var(--text-muted)">💾 Solo local — configura Cloud para sincronizar</span>';
+    if(el) el.innerHTML = '<span style="color:rgba(255,255,255,0.6)">💾 Solo local</span>';
   }
 
   // Auto-save on page close
