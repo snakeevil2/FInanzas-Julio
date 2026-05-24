@@ -1306,7 +1306,7 @@ const CATS_NEGOCIO = [
 // CONFIGURACIÓN GOOGLE SHEETS — EDITA AQUÍ
 // ══════════════════════════════════════════════════
 const GS_CONFIG = {
-  scriptUrl: 'https://script.google.com/macros/s/AKfycbyQV5GtjgMtg73h3zozsbQDa_r9VVND4VcdZWetqlBS6glX1al-stZJVoHiIQz-wyTqnw/exec'
+  scriptUrl: 'https://script.google.com/macros/s/AKfycbyQV5GtjgMtg73h3zozsbQDa_r9VVND4VcdZWetqlBS6glX1al-stZJVoHiIQz-wyTqnw/exec', // Pega aquí tu URL del Apps Script
 };
 
 let state = {
@@ -2074,9 +2074,13 @@ function setCCFilter(n, f, btn) {
 }
 
 function getCycleKey(dateStr, diaCorte) {
-  const d=parseInt(diaCorte)||14, dt=new Date(dateStr+'T12:00:00'), day=dt.getDate();
-  let y=dt.getFullYear(), m=dt.getMonth()+1;
-  if(day>d){m++;if(m>12){m=1;y++;}}
+  const d = parseInt(diaCorte) || 14;
+  // Handle both 'YYYY-MM-DD' and full ISO strings with timezone
+  const clean = (typeof dateStr === 'string' ? dateStr : String(dateStr)).slice(0, 10);
+  const parts = clean.split('-').map(Number);
+  const day = parts[2], month = parts[1], year = parts[0];
+  let y = year, m = month;
+  if (day > d) { m++; if (m > 12) { m = 1; y++; } }
   return `${y}-${String(m).padStart(2,'0')}`;
 }
 
@@ -2092,7 +2096,10 @@ function getCycleRange(ck, diaCorte) {
 }
 
 function getCurrentCycleKeyFor(n) {
-  return getCycleKey(new Date().toISOString().slice(0,10), parseInt(document.getElementById('ccDiaCorte_'+n).value)||14);
+  const diaCorte = parseInt(document.getElementById('ccDiaCorte_'+n).value) || 14;
+  const now = new Date();
+  const localDate = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+  return getCycleKey(localDate, diaCorte);
 }
 
 function agregarGastoTarjeta(n) {
@@ -2240,7 +2247,7 @@ function renderCCDashWidget() {
   const bld=(n,gastos,ac)=>{
     const cfg=JSON.parse(localStorage.getItem('fm_cc_config_'+n)||'{}');
     const dc=parseInt(cfg.diaCorte)||14;
-    const ck=getCycleKey(new Date().toISOString().slice(0,10),dc);
+    const _now=new Date(); const _ld=`${_now.getFullYear()}-${String(_now.getMonth()+1).padStart(2,'0')}-${String(_now.getDate()).padStart(2,'0')}`; const ck=getCycleKey(_ld,dc);
     const cg=gastos.filter(g=>g.cycleKey===ck);
     const u=cg.filter(g=>g.moneda==='USD').reduce((s,g)=>s+g.montoOrig,0);
     const ni=cg.filter(g=>g.moneda==='NIO').reduce((s,g)=>s+g.montoOrig,0);
