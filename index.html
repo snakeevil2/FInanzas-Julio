@@ -658,6 +658,120 @@
 
   /* category colors */
   .cat { display: inline-flex; align-items: center; gap: 5px; }
+
+  /* ══════════════════════════════════════════════════
+     RESPONSIVE — MÓVIL
+  ══════════════════════════════════════════════════ */
+
+  @media (max-width: 768px) {
+
+    /* Header */
+    .header { padding: 10px 14px; flex-wrap: wrap; gap: 8px; }
+    .header-logo { font-size: 1rem; }
+    .header-subtitle { font-size: 0.65rem; }
+    .header-logo-img { width: 32px; height: 32px; }
+    .header-date { display: none; }
+    #syncStatus { font-size: 0.7rem; }
+
+    /* Sync button */
+    #syncStatus + button { font-size: 0.7rem; padding: 4px 10px; }
+
+    /* App container */
+    .app { padding: 12px 10px; }
+
+    /* Tabs — scrollable horizontal */
+    .tabs {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      flex-wrap: nowrap;
+      gap: 4px;
+      padding-bottom: 4px;
+      scrollbar-width: none;
+    }
+    .tabs::-webkit-scrollbar { display: none; }
+    .tab {
+      white-space: nowrap;
+      font-size: 0.78rem;
+      padding: 8px 12px;
+      flex-shrink: 0;
+    }
+    .tab-icon { display: none; }
+
+    /* KPI row */
+    .kpi-row { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .kpi { padding: 14px 12px; }
+    .kpi-value { font-size: 1.3rem; }
+    .kpi-label { font-size: 0.65rem; }
+
+    /* Dashboard CC widget */
+    #dashCCGrid > div { flex-direction: column; }
+
+    /* Cards */
+    .card { padding: 0; }
+    .card-header { padding: 14px 14px 10px; flex-wrap: wrap; gap: 8px; }
+    .card-title { font-size: 0.85rem; }
+    .form-body { padding: 12px 14px; }
+
+    /* Grid 2 cols → 1 col */
+    .grid-2 { grid-template-columns: 1fr; gap: 14px; }
+
+    /* Tables — horizontal scroll */
+    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    table { min-width: 580px; }
+    th, td { font-size: 0.75rem; padding: 8px 10px; }
+
+    /* Full card */
+    .full-card { margin-top: 14px; }
+
+    /* Section title */
+    .section > div:first-child { font-size: 1.2rem !important; }
+
+    /* CC Visual card */
+    .cc-visual { padding: 16px 18px; }
+    .cc-balance-usd { font-size: 1.3rem; }
+    .cc-number { font-size: 0.8rem; letter-spacing: 0.15em; }
+
+    /* Cycle boxes */
+    .cycle-info { gap: 8px; }
+    .cycle-box { padding: 10px 8px; }
+    .cycle-value { font-size: 0.95rem; }
+    .cycle-label { font-size: 0.62rem; }
+
+    /* Tasa input */
+    .tasa-input-row { padding: 8px 12px; flex-wrap: wrap; }
+
+    /* Type toggle buttons */
+    .type-btn { font-size: 0.75rem; padding: 7px 6px; }
+    .cur-btn { font-size: 0.78rem; padding: 7px; }
+
+    /* TC tabs */
+    #tcTab1, #tcTab2 { font-size: 0.78rem; padding: 7px 14px; }
+
+    /* Filter chips */
+    .filter-chip { font-size: 0.72rem; padding: 4px 10px; }
+
+    /* Budget */
+    .budget-item { padding: 10px 14px; }
+
+    /* Buttons */
+    .btn-primary { font-size: 0.85rem; padding: 10px 16px; }
+    .btn-sm { font-size: 0.72rem; padding: 4px 10px; }
+
+    /* Mentoria cards */
+    .mentoria-card { padding: 14px; }
+
+    /* Empty state */
+    .empty-state { padding: 24px 14px; }
+    .empty-state .icon { font-size: 2rem; }
+  }
+
+  @media (max-width: 400px) {
+    .kpi-row { grid-template-columns: 1fr; }
+    .cycle-info { grid-template-columns: 1fr; display: grid; }
+    .tab { font-size: 0.72rem; padding: 7px 10px; }
+    .cc-balance-usd { font-size: 1.1rem; }
+  }
+
 </style>
 </head>
 <body>
