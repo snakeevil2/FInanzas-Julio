@@ -2164,7 +2164,8 @@ function renderTarjetaCard(n) {
   document.getElementById('cycleDaysBox_'+n).className='cycle-box'+(dl<=3?' warning':dl<=7?'':' ok');
   dEl.style.color=dl<=3?'#d93025':dl<=7?ac:'#1a8c5b';
 
-  const cg=cc.filter(g=>g.cycleKey===cur);
+  // Recalculate cycleKey on the fly to handle dates coming from Sheets in ISO format
+  const cg=cc.filter(g=>getCycleKey(g.fecha, diaCorte)===cur);
   const cu=cg.filter(g=>g.moneda==='USD').reduce((s,g)=>s+g.montoOrig,0);
   const cn=cg.filter(g=>g.moneda==='NIO').reduce((s,g)=>s+g.montoOrig,0);
   const ce=cg.reduce((s,g)=>s+g.montoEquivNIO,0);
@@ -2198,7 +2199,7 @@ function renderTarjetaCard(n) {
   document.getElementById('ccResumenCiclo_'+n).innerHTML=html;
 
   const cm2={};
-  cc.forEach(g=>{if(!cm2[g.cycleKey])cm2[g.cycleKey]=[];cm2[g.cycleKey].push(g);});
+  cc.forEach(g=>{const rk=getCycleKey(g.fecha,diaCorte);if(!cm2[rk])cm2[rk]=[];cm2[rk].push(g);});
   const sk=Object.keys(cm2).sort().reverse();
   document.getElementById('ccHistorial_'+n).innerHTML=!sk.length
     ?'<div class="empty-state"><div class="icon">🗓</div><p>Sin historial</p></div>'
@@ -2224,6 +2225,7 @@ function renderCCTable(n) {
   else if(f==='NIO') fl=cc.filter(g=>g.moneda==='NIO');
   else if(f==='personal') fl=cc.filter(g=>g.ambito==='personal');
   else if(f==='negocio') fl=cc.filter(g=>g.ambito==='negocio');
+  const diaCorteT=parseInt(document.getElementById('ccDiaCorte_'+n).value)||14;
   const cur=getCurrentCycleKeyFor(n), ac=n===1?'#0ea5e9':'#6366f1';
   const tb=document.getElementById('ccTable_'+n);
   tb.innerHTML=!fl.length
@@ -2231,7 +2233,7 @@ function renderCCTable(n) {
     :fl.map(g=>{
         const ci=allCats.find(c=>c.id===g.categoria);
         const al=g.ambito==='solo'?'💳 Solo':g.ambito==='personal'?'👤 Personal':'🏢 Negocio';
-        return `<tr class="cc-gasto-row"><td style="color:var(--text-muted);">${g.fecha}</td><td>${g.descripcion}${g.ambito!=='solo'?` <span class="sync-indicator" style="font-size:0.65rem;padding:1px 6px;">⇄</span>`:''}</td><td>${ci?ci.label:'—'}</td><td><span class="badge-${g.moneda==='USD'?'usd':'nio'}">${g.moneda}</span></td><td>${al}</td><td style="text-align:right;font-weight:600;color:${g.moneda==='USD'?'var(--card-usd)':ac};">${g.moneda==='USD'?'$':'C$'}${g.montoOrig.toFixed(2)}</td><td style="text-align:right;color:var(--text-muted);">C$${g.montoEquivNIO.toFixed(2)}</td><td><span style="font-size:0.72rem;${g.cycleKey===cur?'color:'+ac+';font-weight:600;':'color:var(--text-muted);'}">${getCycleLabel(g.cycleKey)}</span></td><td><button class="delete-btn" onclick="deleteCCGasto(${n},${g.id})">✕</button></td></tr>`;
+        return `<tr class="cc-gasto-row"><td style="color:var(--text-muted);">${g.fecha}</td><td>${g.descripcion}${g.ambito!=='solo'?` <span class="sync-indicator" style="font-size:0.65rem;padding:1px 6px;">⇄</span>`:''}</td><td>${ci?ci.label:'—'}</td><td><span class="badge-${g.moneda==='USD'?'usd':'nio'}">${g.moneda}</span></td><td>${al}</td><td style="text-align:right;font-weight:600;color:${g.moneda==='USD'?'var(--card-usd)':ac};">${g.moneda==='USD'?'$':'C$'}${g.montoOrig.toFixed(2)}</td><td style="text-align:right;color:var(--text-muted);">C$${g.montoEquivNIO.toFixed(2)}</td><td><span style="font-size:0.72rem;${getCycleKey(g.fecha,diaCorteT)===cur?'color:'+ac+';font-weight:600;':'color:var(--text-muted);'}">${getCycleLabel(g.cycleKey)}</span></td><td><button class="delete-btn" onclick="deleteCCGasto(${n},${g.id})">✕</button></td></tr>`;
       }).join('');
   document.getElementById('ccTotalUSD_'+n).textContent='$'+fl.filter(g=>g.moneda==='USD').reduce((s,g)=>s+g.montoOrig,0).toFixed(2);
   document.getElementById('ccTotalNIO_'+n).textContent='C$'+fl.filter(g=>g.moneda==='NIO').reduce((s,g)=>s+g.montoOrig,0).toFixed(2);
@@ -2248,7 +2250,7 @@ function renderCCDashWidget() {
     const cfg=JSON.parse(localStorage.getItem('fm_cc_config_'+n)||'{}');
     const dc=parseInt(cfg.diaCorte)||14;
     const _now=new Date(); const _ld=`${_now.getFullYear()}-${String(_now.getMonth()+1).padStart(2,'0')}-${String(_now.getDate()).padStart(2,'0')}`; const ck=getCycleKey(_ld,dc);
-    const cg=gastos.filter(g=>g.cycleKey===ck);
+    const cg=gastos.filter(g=>getCycleKey(g.fecha,dc)===ck);
     const u=cg.filter(g=>g.moneda==='USD').reduce((s,g)=>s+g.montoOrig,0);
     const ni=cg.filter(g=>g.moneda==='NIO').reduce((s,g)=>s+g.montoOrig,0);
     const eq=cg.reduce((s,g)=>s+g.montoEquivNIO,0);
