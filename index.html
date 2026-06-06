@@ -1456,7 +1456,9 @@ async function sbRequest(method, table, body = null, params = '') {
 }
 
 async function sbLoad(table) {
-  return sbRequest('GET', table, null, '?select=*&order=id.desc');
+  // presupuestos usa 'cat' como primary key, no 'id'
+  const order = table === 'presupuestos' ? 'cat.asc' : 'id.desc';
+  return sbRequest('GET', table, null, `?select=*&order=${order}`);
 }
 
 async function sbUpsert(table, rows) {
