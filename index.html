@@ -1461,13 +1461,13 @@ async function sbLoad(table) {
   return sbRequest('GET', table, null, `?select=*&order=${order}`);
 }
 
-async function sbUpsert(table, rows) {
+async function sbUpsert(table, rows, conflictCol = 'id') {
   if (!rows || !rows.length) return;
-  return sbRequest('POST', table, rows, '?on_conflict=id');
+  return sbRequest('POST', table, rows, `?on_conflict=${conflictCol}`);
 }
 
-async function sbDelete(table, id) {
-  return sbRequest('DELETE', table, null, `?id=eq.${id}`);
+async function sbDelete(table, value, col = 'id') {
+  return sbRequest('DELETE', table, null, `?${col}=eq.${value}`);
 }
 
 async function sbDeleteAll(table) {
@@ -1554,7 +1554,7 @@ async function cloudSave() {
     const cc2 = JSON.parse(localStorage.getItem('fm_cc_gastos_2') || '[]');
     await Promise.all([
       state.movimientos.length ? sbUpsert('movimientos', state.movimientos.map(movToSB)) : Promise.resolve(),
-      state.presupuestos.length ? sbUpsert('presupuestos', state.presupuestos.map(presToSB)) : Promise.resolve(),
+      state.presupuestos.length ? sbUpsert('presupuestos', state.presupuestos.map(presToSB), 'cat') : Promise.resolve(),
       cc1.length ? sbUpsert('tarjeta1', cc1.map(ccToSB)) : Promise.resolve(),
       cc2.length ? sbUpsert('tarjeta2', cc2.map(ccToSB)) : Promise.resolve(),
     ]);
@@ -2046,10 +2046,12 @@ function renderBudgetUI() {
     </div>`;
 }
 
-function deleteBudget(cat) {
+async function deleteBudget(cat) {
   state.presupuestos = state.presupuestos.filter(b=>b.cat!==cat);
-  save();
+  localStorage.setItem('fm_budgets', JSON.stringify(state.presupuestos));
+  try { await sbDelete('presupuestos', cat, 'cat'); } catch(e) { console.warn('Delete budget failed:', e); }
   renderBudgetUI();
+  showToast('🗑 Presupuesto eliminado ✓');
 }
 
 // ══════════════════════════════════════════════════
