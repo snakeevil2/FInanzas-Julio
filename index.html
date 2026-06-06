@@ -774,27 +774,23 @@
 
 
   /* ── BOTTOM NAV MÓVIL ── */
-  .bottom-nav {
-    display: none;
-  }
+  .bottom-nav { display: none; }
+  .mas-menu { display: none; }
 
   @media (max-width: 768px) {
-    /* Ocultar tabs superiores en móvil */
     .tabs { display: none !important; }
 
-    /* Mostrar nav inferior */
     .bottom-nav {
       display: flex;
       position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
+      bottom: 0; left: 0; right: 0;
       background: #ffffff;
-      border-top: 1px solid rgba(30,80,180,0.15);
-      box-shadow: 0 -4px 20px rgba(30,80,180,0.1);
+      border-top: 2px solid rgba(26,79,173,0.12);
+      box-shadow: 0 -6px 24px rgba(26,79,173,0.12);
       z-index: 1000;
-      padding: 0;
-      height: 62px;
+      height: 72px;
+      padding: 0 4px;
+      padding-bottom: env(safe-area-inset-bottom);
     }
 
     .bottom-nav-btn {
@@ -803,83 +799,117 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 3px;
+      gap: 4px;
       border: none;
       background: transparent;
-      color: #8a9bbf;
+      color: #9aaac8;
       font-family: 'DM Sans', sans-serif;
-      font-size: 0.6rem;
-      font-weight: 500;
+      font-size: 0.62rem;
+      font-weight: 600;
       cursor: pointer;
-      padding: 6px 2px;
-      transition: all 0.2s;
-      letter-spacing: 0.02em;
+      padding: 8px 4px;
+      border-radius: 12px;
+      margin: 6px 2px;
+      transition: all 0.15s;
+      -webkit-tap-highlight-color: transparent;
+      min-width: 52px;
     }
 
-    .bottom-nav-btn .nav-icon {
-      font-size: 1.3rem;
-      line-height: 1;
-      transition: transform 0.2s;
+    .bottom-nav-btn:active {
+      transform: scale(0.92);
+      background: rgba(26,79,173,0.08);
+    }
+
+    .nav-icon-box {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+      transition: all 0.15s;
+      background: transparent;
+    }
+
+    .bottom-nav-btn.active .nav-icon-box {
+      background: rgba(26,79,173,0.12);
     }
 
     .bottom-nav-btn.active {
       color: #1a4fad;
     }
 
-    .bottom-nav-btn.active .nav-icon {
-      transform: scale(1.15);
-    }
-
-    .bottom-nav-btn.active-register {
-      color: #ffffff;
-    }
-
-    /* Botón registrar destacado en el centro */
-    .bottom-nav-btn.nav-register {
-      position: relative;
-    }
-
-    .bottom-nav-btn.nav-register .nav-icon-wrap {
+    /* Botón Registrar — destacado */
+    .nav-register .nav-icon-box {
       background: #1a4fad;
-      border-radius: 50%;
+      border-radius: 14px;
       width: 44px;
       height: 44px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-top: -16px;
-      box-shadow: 0 4px 12px rgba(26,79,173,0.4);
-      transition: all 0.2s;
+      font-size: 1.5rem;
+      box-shadow: 0 4px 14px rgba(26,79,173,0.35);
+      color: white;
     }
 
-    .bottom-nav-btn.nav-register.active .nav-icon-wrap {
+    .nav-register.active .nav-icon-box {
       background: #1a4fad;
-      box-shadow: 0 4px 16px rgba(26,79,173,0.6);
-      transform: scale(1.05);
+      box-shadow: 0 4px 18px rgba(26,79,173,0.5);
     }
 
-    .bottom-nav-btn.nav-register .nav-icon {
-      font-size: 1.4rem;
-      transform: none !important;
-    }
-
-    .bottom-nav-btn.nav-register span:last-child {
-      color: #8a9bbf;
-      font-size: 0.6rem;
-    }
-
-    .bottom-nav-btn.nav-register.active span:last-child {
+    .nav-register {
       color: #1a4fad;
     }
 
-    /* Ajustar padding del app para que no tape el contenido */
-    .app {
-      padding-bottom: 74px !important;
+    .app { padding-bottom: 80px !important; }
+    .header { padding: 8px 14px; }
+
+    /* Menú más */
+    .mas-menu {
+      position: fixed;
+      bottom: 72px; left: 0; right: 0;
+      background: #fff;
+      border-top: 1px solid rgba(26,79,173,0.12);
+      box-shadow: 0 -8px 32px rgba(26,79,173,0.12);
+      z-index: 999;
+      padding: 16px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      border-radius: 20px 20px 0 0;
     }
 
-    /* Header más compacto */
-    .header {
-      padding: 8px 14px;
+    .mas-menu-btn {
+      flex: 1;
+      min-width: 130px;
+      padding: 14px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(26,79,173,0.15);
+      background: #f4f8ff;
+      color: #1a4fad;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .mas-menu-btn:active {
+      background: rgba(26,79,173,0.15);
+      transform: scale(0.97);
+    }
+
+    /* Overlay para cerrar menú más */
+    .mas-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.3);
+      z-index: 998;
     }
   }
 
@@ -926,38 +956,39 @@
     </button>
   </div>
 
+  <!-- ── OVERLAY para cerrar menú más ── -->
+  <div class="mas-overlay" id="masOverlay" onclick="closeMasMenu()"></div>
+
   <!-- ── BOTTOM NAV (solo móvil) ── -->
   <div class="bottom-nav">
     <button class="bottom-nav-btn active" id="bnDashboard" onclick="showSection('dashboard', this); setBottomNav('bnDashboard')">
-      <span class="nav-icon">◎</span>
+      <div class="nav-icon-box">🏠</div>
       <span>Inicio</span>
     </button>
     <button class="bottom-nav-btn" id="bnMovimientos" onclick="showSection('movimientos', this); setBottomNav('bnMovimientos')">
-      <span class="nav-icon">≡</span>
+      <div class="nav-icon-box">📋</div>
       <span>Gastos</span>
     </button>
     <button class="bottom-nav-btn nav-register" id="bnRegistrar" onclick="showSection('registro', this); setBottomNav('bnRegistrar')">
-      <div class="nav-icon-wrap">
-        <span class="nav-icon">＋</span>
-      </div>
+      <div class="nav-icon-box">＋</div>
       <span>Registrar</span>
     </button>
     <button class="bottom-nav-btn" id="bnTarjeta" onclick="showSection('tarjeta', this); setBottomNav('bnTarjeta')">
-      <span class="nav-icon">💳</span>
+      <div class="nav-icon-box">💳</div>
       <span>Tarjeta</span>
     </button>
     <button class="bottom-nav-btn" id="bnMas" onclick="toggleMasMenu()">
-      <span class="nav-icon">⋯</span>
+      <div class="nav-icon-box">☰</div>
       <span>Más</span>
     </button>
   </div>
 
   <!-- Menú "Más" para móvil -->
-  <div id="masMenu" style="display:none; position:fixed; bottom:62px; left:0; right:0; background:#fff; border-top:1px solid rgba(30,80,180,0.15); box-shadow:0 -4px 20px rgba(30,80,180,0.1); z-index:999; padding:12px 16px; gap:8px; flex-wrap:wrap;">
-    <button onclick="showSection('presupuesto', null); setBottomNav(null); document.getElementById('masMenu').style.display='none';" style="flex:1; min-width:120px; padding:12px; border-radius:10px; border:1px solid rgba(30,80,180,0.15); background:#f4f8ff; color:#1a4fad; font-family:'DM Sans',sans-serif; font-size:0.82rem; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:8px; justify-content:center;">
-      ◷ Presupuesto
+  <div class="mas-menu" id="masMenu" style="display:none;">
+    <button class="mas-menu-btn" onclick="showSection('presupuesto', null); setBottomNav(null); closeMasMenu();">
+      📊 Presupuesto
     </button>
-    <button onclick="showSection('consejos', null); setBottomNav(null); document.getElementById('masMenu').style.display='none';" style="flex:1; min-width:120px; padding:12px; border-radius:10px; border:1px solid rgba(30,80,180,0.15); background:#f4f8ff; color:#1a4fad; font-family:'DM Sans',sans-serif; font-size:0.82rem; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:8px; justify-content:center;">
+    <button class="mas-menu-btn" onclick="showSection('consejos', null); setBottomNav(null); closeMasMenu();">
       ✦ Mentoría
     </button>
   </div>
@@ -1815,12 +1846,22 @@ function setBottomNav(activeId) {
 
 function toggleMasMenu() {
   const menu = document.getElementById('masMenu');
+  const overlay = document.getElementById('masOverlay');
   if (!menu) return;
   const isOpen = menu.style.display === 'flex';
   menu.style.display = isOpen ? 'none' : 'flex';
-  // Marcar botón más como activo cuando está abierto
+  if (overlay) overlay.style.display = isOpen ? 'none' : 'block';
   const btn = document.getElementById('bnMas');
   if (btn) btn.classList.toggle('active', !isOpen);
+}
+
+function closeMasMenu() {
+  const menu = document.getElementById('masMenu');
+  const overlay = document.getElementById('masOverlay');
+  if (menu) menu.style.display = 'none';
+  if (overlay) overlay.style.display = 'none';
+  const btn = document.getElementById('bnMas');
+  if (btn) btn.classList.remove('active');
 }
 
 // ══════════════════════════════════════════════════
