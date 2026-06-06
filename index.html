@@ -1445,7 +1445,7 @@ function jsonpRequest(url) {
     const timeout = setTimeout(() => {
       cleanup();
       reject(new Error('Timeout'));
-    }, 10000);
+    }, 20000); // 20s timeout for mobile connections
     function cleanup() {
       clearTimeout(timeout);
       delete window[cbName];
@@ -1515,26 +1515,56 @@ async function cloudSave() {
   localStorage.setItem('fm_movs', JSON.stringify(state.movimientos));
   localStorage.setItem('fm_budgets', JSON.stringify(state.presupuestos));
   if (!isCloudEnabled()) return;
-  try {
-    setSyncStatus('saving');
-    const cc1 = JSON.parse(localStorage.getItem('fm_cc_gastos_1') || '[]');
-    const cc2 = JSON.parse(localStorage.getItem('fm_cc_gastos_2') || '[]');
-    const payload = {
-      movimientos: state.movimientos,
-      presupuestos: state.presupuestos,
-      cc1: cc1,
-      cc2: cc2,
-    };
-    const data = await jsonpRequest(
-      GS_CONFIG.scriptUrl + '?data=' + encodeURIComponent(JSON.stringify(payload))
-    );
-    state.lastSync = new Date();
-    setSyncStatus('ok');
-  } catch(e) {
-    setSyncStatus('error');
-    console.warn('Cloud save failed:', e);
+
+  // Retry logic — intenta hasta 3 veces
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      setSyncStatus('saving');
+      const cc1 = JSON.parse(localStorage.getItem('fm_cc_gastos_1') || '[]');
+      const cc2 = JSON.parse(localStorage.getItem('fm_cc_gastos_2') || '[]');
+      const payload = {
+        movimientos: state.movimientos,
+        presupuestos: state.presupuestos,
+        cc1: cc1,
+        cc2: cc2,
+      };
+      const encoded = encodeURIComponent(JSON.stringify(payload));
+      // If payload too large, save only movimientos first
+      if (encoded.length > 6000) {
+        const p1 = { movimientos: state.movimientos, presupuestos: state.presupuestos, cc1: [], cc2: [] };
+        await jsonpRequest(GS_CONFIG.scriptUrl + '?data=' + encodeURIComponent(JSON.stringify(p1)));
+        const p2 = { movimientos: [], presupuestos: [], cc1: cc1, cc2: cc2 };
+        await jsonpRequest(GS_CONFIG.scriptUrl + '?data=' + encodeURIComponent(JSON.stringify(p2)));
+      } else {
+        await jsonpRequest(GS_CONFIG.scriptUrl + '?data=' + encoded);
+      }
+      state.lastSync = new Date();
+      setSyncStatus('ok');
+      return; // éxito — salir del loop
+    } catch(e) {
+      console.warn('Cloud save attempt ' + attempt + ' failed:', e);
+      if (attempt === 3) {
+        setSyncStatus('error');
+        // Guardar en cola para reintentar al volver a tener conexión
+        localStorage.setItem('fm_pending_sync', 'true');
+      } else {
+        // Esperar 2 segundos antes de reintentar
+        await new Promise(r => setTimeout(r, 2000));
+      }
+    }
   }
 }
+
+// Reintentar sync pendiente cuando la página recupera foco
+document.addEventListener('visibilitychange', async () => {
+  if (!document.hidden && localStorage.getItem('fm_pending_sync') === 'true' && isCloudEnabled()) {
+    localStorage.removeItem('fm_pending_sync');
+    await cloudSave();
+    if (document.getElementById('syncStatus').innerHTML.includes('Sincronizado')) {
+      showToast('☁️ Sync pendiente completado ✓');
+    }
+  }
+});
 
 function setSyncStatus(status) {
   const el = document.getElementById('syncStatus');
