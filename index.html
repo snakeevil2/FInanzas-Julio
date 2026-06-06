@@ -795,22 +795,22 @@
 
   <!-- TABS -->
   <div class="tabs">
-    <button class="tab active" onclick=\"showSection('dashboard', this)\">
+    <button class="tab active" onclick="showSection('dashboard', this)">
       <span class="tab-icon">◎</span> Dashboard
     </button>
-    <button class="tab" onclick=\"showSection('registro', this)\">
+    <button class="tab" onclick="showSection('registro', this)">
       <span class="tab-icon">＋</span> Registrar
     </button>
-    <button class="tab" onclick=\"showSection('movimientos', this)\">
+    <button class="tab" onclick="showSection('movimientos', this)">
       <span class="tab-icon">≡</span> Movimientos
     </button>
-    <button class="tab" onclick=\"showSection('presupuesto', this)\">
+    <button class="tab" onclick="showSection('presupuesto', this)">
       <span class="tab-icon">◷</span> Presupuesto
     </button>
-    <button class="tab" onclick=\"showSection('consejos', this)\">
+    <button class="tab" onclick="showSection('consejos', this)">
       <span class="tab-icon">✦</span> Mentoría
     </button>
-    <button class="tab" onclick=\"showSection('tarjeta', this)\">
+    <button class="tab" onclick="showSection('tarjeta', this)">
       <span class="tab-icon">💳</span> Tarjeta
     </button>
   </div>
@@ -859,7 +859,7 @@
       <div class="card" style="border-color:rgba(14,165,233,0.25);">
         <div class="card-header" style="border-color:rgba(14,165,233,0.15);">
           <div class="card-title">💳 Tarjeta de Crédito — Ciclo Actual</div>
-          <button class="btn-sm" onclick=\"showSection('tarjeta', this)\" style="border-color:rgba(14,165,233,0.3);color:#0ea5e9;">Ver detalle →</button>
+          <button class="btn-sm" onclick="showSection('tarjeta', this)" style="border-color:rgba(14,165,233,0.3);color:#0ea5e9;">Ver detalle →</button>
         </div>
         <div style="padding:16px 22px; display:grid; grid-template-columns:repeat(4,1fr); gap:14px;" id="dashCCGrid"></div>
       </div>
@@ -1952,7 +1952,7 @@ function renderMovimientos() {
   bEl.style.color = bal >= 0 ? '#1a8c5b' : '#d93025';
 }
 
-async async function deleteMov(id) {
+async function deleteMov(id) {
   if (!confirm('¿Eliminar este movimiento?')) return;
   state.movimientos = state.movimientos.filter(m=>m.id!==id);
   localStorage.setItem('fm_movs', JSON.stringify(state.movimientos));
