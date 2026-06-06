@@ -1516,7 +1516,6 @@ async function cloudSave() {
   localStorage.setItem('fm_budgets', JSON.stringify(state.presupuestos));
   if (!isCloudEnabled()) return;
 
-  // Retry logic — intenta hasta 3 veces
   for (let attempt = 1; attempt <= 3; attempt++) {
     try {
       setSyncStatus('saving');
@@ -1529,26 +1528,32 @@ async function cloudSave() {
         cc2: cc2,
       };
       const encoded = encodeURIComponent(JSON.stringify(payload));
-      // If payload too large, save only movimientos first
-      if (encoded.length > 6000) {
-        const p1 = { movimientos: state.movimientos, presupuestos: state.presupuestos, cc1: [], cc2: [] };
+
+      if (encoded.length > 7000) {
+        // Payload grande — enviar en 2 partes SIN arrays vacíos
+        // Parte 1: movimientos y presupuestos
+        const p1 = { movimientos: state.movimientos, presupuestos: state.presupuestos };
         await jsonpRequest(GS_CONFIG.scriptUrl + '?data=' + encodeURIComponent(JSON.stringify(p1)));
-        const p2 = { movimientos: [], presupuestos: [], cc1: cc1, cc2: cc2 };
-        await jsonpRequest(GS_CONFIG.scriptUrl + '?data=' + encodeURIComponent(JSON.stringify(p2)));
+        // Parte 2: tarjetas (solo si tienen datos)
+        if (cc1.length > 0 || cc2.length > 0) {
+          const p2 = {};
+          if (cc1.length > 0) p2.cc1 = cc1;
+          if (cc2.length > 0) p2.cc2 = cc2;
+          await jsonpRequest(GS_CONFIG.scriptUrl + '?data=' + encodeURIComponent(JSON.stringify(p2)));
+        }
       } else {
         await jsonpRequest(GS_CONFIG.scriptUrl + '?data=' + encoded);
       }
+
       state.lastSync = new Date();
       setSyncStatus('ok');
-      return; // éxito — salir del loop
+      return;
     } catch(e) {
       console.warn('Cloud save attempt ' + attempt + ' failed:', e);
       if (attempt === 3) {
         setSyncStatus('error');
-        // Guardar en cola para reintentar al volver a tener conexión
         localStorage.setItem('fm_pending_sync', 'true');
       } else {
-        // Esperar 2 segundos antes de reintentar
         await new Promise(r => setTimeout(r, 2000));
       }
     }
@@ -2268,7 +2273,12 @@ function agregarGastoTarjeta(n) {
   const lbl=cfg.nombre?`TC${n}:${cfg.nombre}`:`TC${n}`;
   if(ambit!=='solo'){
     const movSync={id:Date.now()+1,tipo:'gasto',ambito:ambit,monto:montoEquivNIO,fecha,descripcion:`[💳 ${lbl}] ${desc}`,categoria:cat,metodo:'tarjeta',notas:`${lbl} · ${cur==='USD'?'$'+monto.toFixed(2)+' USD':'C$'+monto.toFixed(2)} · ${notas}`,ccSyncId:gastoCC.id,ccCard:n};
-    state.movimientos.unshift(movSync); save(); renderDashboard(); renderMovimientos();
+    state.movimientos.unshift(movSync);
+    save(); // save() llama cloudSave() — sincroniza movimientos + tarjetas
+    renderDashboard(); renderMovimientos();
+  } else {
+    // Solo TC — igual necesita sincronizar a Sheets
+    cloudSave();
   }
   document.getElementById('ccMonto_'+n).value='';
   document.getElementById('ccDesc_'+n).value='';
@@ -2283,7 +2293,12 @@ function deleteCCGasto(n, id) {
   const cc=JSON.parse(localStorage.getItem('fm_cc_gastos_'+n)||'[]');
   const g=cc.find(x=>x.id===id);
   localStorage.setItem('fm_cc_gastos_'+n, JSON.stringify(cc.filter(x=>x.id!==id)));
-  if(g&&g.ambito!=='solo'){state.movimientos=state.movimientos.filter(m=>m.ccSyncId!==id);save();renderDashboard();renderMovimientos();}
+  if(g&&g.ambito!=='solo'){
+    state.movimientos=state.movimientos.filter(m=>m.ccSyncId!==id);
+    save(); renderDashboard(); renderMovimientos();
+  } else {
+    cloudSave(); // Solo TC — sincronizar igual
+  }
   renderTarjetaCard(n);
 }
 
