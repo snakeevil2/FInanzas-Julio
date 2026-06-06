@@ -1456,7 +1456,7 @@ function jsonpRequest(url) {
       cleanup();
       resolve(data);
     };
-    script.src = url + '&callback=' + cbName;
+    script.src = url + '&callback=' + cbName + '&t=' + Date.now();
     script.onerror = () => { cleanup(); reject(new Error('Script error')); };
     document.head.appendChild(script);
   });
@@ -1466,7 +1466,7 @@ async function cloudLoad() {
   if (!isCloudEnabled()) return false;
   try {
     setSyncStatus('loading');
-    const data = await jsonpRequest(GS_CONFIG.scriptUrl + '?action=load');
+    const data = await jsonpRequest(GS_CONFIG.scriptUrl + '?action=load&t=' + Date.now());
     if (data && data.movimientos) {
       state.movimientos = data.movimientos;
       localStorage.setItem('fm_movs', JSON.stringify(data.movimientos));
@@ -1502,6 +1502,9 @@ async function manualSync() {
 async function manualLoad() {
   if (!isCloudEnabled()) { showToast('⚠️ Cloud no configurado'); return; }
   if (!confirm('⚠️ Esto reemplazará tus datos locales con los de la nube.\n¿Continuar?')) return;
+  // Esperar 3 segundos para que Google procese el último guardado
+  showToast('⏳ Cargando desde la nube...');
+  await new Promise(r => setTimeout(r, 3000));
   setSyncStatus('loading');
   const loaded = await cloudLoad();
   if (loaded) {
