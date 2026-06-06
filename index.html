@@ -772,6 +772,117 @@
     .cc-balance-usd { font-size: 1.1rem; }
   }
 
+
+  /* ── BOTTOM NAV MÓVIL ── */
+  .bottom-nav {
+    display: none;
+  }
+
+  @media (max-width: 768px) {
+    /* Ocultar tabs superiores en móvil */
+    .tabs { display: none !important; }
+
+    /* Mostrar nav inferior */
+    .bottom-nav {
+      display: flex;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #ffffff;
+      border-top: 1px solid rgba(30,80,180,0.15);
+      box-shadow: 0 -4px 20px rgba(30,80,180,0.1);
+      z-index: 1000;
+      padding: 0;
+      height: 62px;
+    }
+
+    .bottom-nav-btn {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      border: none;
+      background: transparent;
+      color: #8a9bbf;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.6rem;
+      font-weight: 500;
+      cursor: pointer;
+      padding: 6px 2px;
+      transition: all 0.2s;
+      letter-spacing: 0.02em;
+    }
+
+    .bottom-nav-btn .nav-icon {
+      font-size: 1.3rem;
+      line-height: 1;
+      transition: transform 0.2s;
+    }
+
+    .bottom-nav-btn.active {
+      color: #1a4fad;
+    }
+
+    .bottom-nav-btn.active .nav-icon {
+      transform: scale(1.15);
+    }
+
+    .bottom-nav-btn.active-register {
+      color: #ffffff;
+    }
+
+    /* Botón registrar destacado en el centro */
+    .bottom-nav-btn.nav-register {
+      position: relative;
+    }
+
+    .bottom-nav-btn.nav-register .nav-icon-wrap {
+      background: #1a4fad;
+      border-radius: 50%;
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: -16px;
+      box-shadow: 0 4px 12px rgba(26,79,173,0.4);
+      transition: all 0.2s;
+    }
+
+    .bottom-nav-btn.nav-register.active .nav-icon-wrap {
+      background: #1a4fad;
+      box-shadow: 0 4px 16px rgba(26,79,173,0.6);
+      transform: scale(1.05);
+    }
+
+    .bottom-nav-btn.nav-register .nav-icon {
+      font-size: 1.4rem;
+      transform: none !important;
+    }
+
+    .bottom-nav-btn.nav-register span:last-child {
+      color: #8a9bbf;
+      font-size: 0.6rem;
+    }
+
+    .bottom-nav-btn.nav-register.active span:last-child {
+      color: #1a4fad;
+    }
+
+    /* Ajustar padding del app para que no tape el contenido */
+    .app {
+      padding-bottom: 74px !important;
+    }
+
+    /* Header más compacto */
+    .header {
+      padding: 8px 14px;
+    }
+  }
+
 </style>
 </head>
 <body>
@@ -812,6 +923,42 @@
     </button>
     <button class="tab" onclick="showSection('tarjeta', this)">
       <span class="tab-icon">💳</span> Tarjeta
+    </button>
+  </div>
+
+  <!-- ── BOTTOM NAV (solo móvil) ── -->
+  <div class="bottom-nav">
+    <button class="bottom-nav-btn active" id="bnDashboard" onclick="showSection('dashboard', this); setBottomNav('bnDashboard')">
+      <span class="nav-icon">◎</span>
+      <span>Inicio</span>
+    </button>
+    <button class="bottom-nav-btn" id="bnMovimientos" onclick="showSection('movimientos', this); setBottomNav('bnMovimientos')">
+      <span class="nav-icon">≡</span>
+      <span>Gastos</span>
+    </button>
+    <button class="bottom-nav-btn nav-register" id="bnRegistrar" onclick="showSection('registro', this); setBottomNav('bnRegistrar')">
+      <div class="nav-icon-wrap">
+        <span class="nav-icon">＋</span>
+      </div>
+      <span>Registrar</span>
+    </button>
+    <button class="bottom-nav-btn" id="bnTarjeta" onclick="showSection('tarjeta', this); setBottomNav('bnTarjeta')">
+      <span class="nav-icon">💳</span>
+      <span>Tarjeta</span>
+    </button>
+    <button class="bottom-nav-btn" id="bnMas" onclick="toggleMasMenu()">
+      <span class="nav-icon">⋯</span>
+      <span>Más</span>
+    </button>
+  </div>
+
+  <!-- Menú "Más" para móvil -->
+  <div id="masMenu" style="display:none; position:fixed; bottom:62px; left:0; right:0; background:#fff; border-top:1px solid rgba(30,80,180,0.15); box-shadow:0 -4px 20px rgba(30,80,180,0.1); z-index:999; padding:12px 16px; gap:8px; flex-wrap:wrap;">
+    <button onclick="showSection('presupuesto', null); setBottomNav(null); document.getElementById('masMenu').style.display='none';" style="flex:1; min-width:120px; padding:12px; border-radius:10px; border:1px solid rgba(30,80,180,0.15); background:#f4f8ff; color:#1a4fad; font-family:'DM Sans',sans-serif; font-size:0.82rem; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:8px; justify-content:center;">
+      ◷ Presupuesto
+    </button>
+    <button onclick="showSection('consejos', null); setBottomNav(null); document.getElementById('masMenu').style.display='none';" style="flex:1; min-width:120px; padding:12px; border-radius:10px; border:1px solid rgba(30,80,180,0.15); background:#f4f8ff; color:#1a4fad; font-family:'DM Sans',sans-serif; font-size:0.82rem; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:8px; justify-content:center;">
+      ✦ Mentoría
     </button>
   </div>
 
@@ -1653,6 +1800,27 @@ function showSection(id, el) {
   const sec = document.getElementById(id);
   if (sec) sec.classList.add('active');
   if (el) el.classList.add('active');
+  // Cerrar menú más si está abierto
+  const masMenu = document.getElementById('masMenu');
+  if (masMenu) masMenu.style.display = 'none';
+}
+
+function setBottomNav(activeId) {
+  document.querySelectorAll('.bottom-nav-btn').forEach(b => b.classList.remove('active'));
+  if (activeId) {
+    const btn = document.getElementById(activeId);
+    if (btn) btn.classList.add('active');
+  }
+}
+
+function toggleMasMenu() {
+  const menu = document.getElementById('masMenu');
+  if (!menu) return;
+  const isOpen = menu.style.display === 'flex';
+  menu.style.display = isOpen ? 'none' : 'flex';
+  // Marcar botón más como activo cuando está abierto
+  const btn = document.getElementById('bnMas');
+  if (btn) btn.classList.toggle('active', !isOpen);
 }
 
 // ══════════════════════════════════════════════════
