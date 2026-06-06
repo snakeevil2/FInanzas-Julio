@@ -1417,11 +1417,11 @@ const CATS_NEGOCIO = [
 ];
 
 // ══════════════════════════════════════════════════
-// CONFIGURACIÓN GOOGLE SHEETS — EDITA AQUÍ
 // ══════════════════════════════════════════════════
-const GS_CONFIG = {
-  scriptUrl: 'https://script.google.com/macros/s/AKfycbyQV5GtjgMtg73h3zozsbQDa_r9VVND4VcdZWetqlBS6glX1al-stZJVoHiIQz-wyTqnw/exec', // Pega aquí tu URL del Apps Script
-};
+// CONFIGURACIÓN SUPABASE
+// ══════════════════════════════════════════════════
+const SB_URL = 'https://uqzizrsltrdnsibwjyjx.supabase.co';
+const SB_KEY = 'sb_publishable_RwEYwumkhFV2dlSrNBACDw_oV7PvCI1';
 
 let state = {
   movimientos: JSON.parse(localStorage.getItem('fm_movs') || '[]'),
@@ -1430,69 +1430,110 @@ let state = {
   currentMonth: new Date().toISOString().slice(0,7),
   syncing: false,
   lastSync: null,
-  cloudEnabled: false,
 };
 
-// ── SYNC ENGINE (JSONP — sin bloqueo CORS) ──────────────
-function isCloudEnabled() {
-  return GS_CONFIG.scriptUrl && GS_CONFIG.scriptUrl.length > 10;
+// ── SUPABASE API HELPERS ──────────────────────────
+
+async function sbRequest(method, table, body = null, params = '') {
+  const url = `${SB_URL}/rest/v1/${table}${params}`;
+  const opts = {
+    method,
+    headers: {
+      'apikey': SB_KEY,
+      'Authorization': `Bearer ${SB_KEY}`,
+      'Content-Type': 'application/json',
+      'Prefer': method === 'POST' ? 'resolution=merge-duplicates' : '',
+    },
+  };
+  if (body) opts.body = JSON.stringify(body);
+  const res = await fetch(url, opts);
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(`${method} ${table}: ${res.status} ${err}`);
+  }
+  if (method === 'GET') return res.json();
+  return true;
 }
 
-function jsonpRequest(url) {
-  return new Promise((resolve, reject) => {
-    const cbName = 'gs_cb_' + Date.now();
-    const script = document.createElement('script');
-    const timeout = setTimeout(() => {
-      cleanup();
-      reject(new Error('Timeout'));
-    }, 20000); // 20s timeout for mobile connections
-    function cleanup() {
-      clearTimeout(timeout);
-      delete window[cbName];
-      if (script.parentNode) script.parentNode.removeChild(script);
-    }
-    window[cbName] = function(data) {
-      cleanup();
-      resolve(data);
-    };
-    script.src = url + '&callback=' + cbName + '&t=' + Date.now();
-    script.onerror = () => { cleanup(); reject(new Error('Script error')); };
-    document.head.appendChild(script);
-  });
+async function sbLoad(table) {
+  return sbRequest('GET', table, null, '?select=*&order=id.desc');
 }
 
-async function cloudLoad(forceOverwrite = false) {
-  if (!isCloudEnabled()) return false;
+async function sbUpsert(table, rows) {
+  if (!rows || !rows.length) return;
+  return sbRequest('POST', table, rows, '?on_conflict=id');
+}
+
+async function sbDelete(table, id) {
+  return sbRequest('DELETE', table, null, `?id=eq.${id}`);
+}
+
+async function sbDeleteAll(table) {
+  return sbRequest('DELETE', table, null, '?id=neq.-1');
+}
+
+// ── SYNC ENGINE ───────────────────────────────────
+
+function setSyncStatus(status) {
+  const el = document.getElementById('syncStatus');
+  if (!el) return;
+  const icons  = { loading:'⟳', saving:'⟳', ok:'☁', error:'⚠' };
+  const colors = { loading:'#1a4fad', saving:'#1a4fad', ok:'#1a8c5b', error:'#d93025' };
+  const labels = { loading:'Cargando...', saving:'Guardando...', ok:'Sincronizado ✓', error:'Sin conexión' };
+  el.innerHTML = `<span style="color:${colors[status]}">${icons[status]} ${labels[status]}</span>`;
+}
+
+// Convertir movimiento para Supabase (snake_case)
+function movToSB(m) {
+  return { id: m.id, tipo: m.tipo, ambito: m.ambito, monto: m.monto, fecha: m.fecha,
+    descripcion: m.descripcion, categoria: m.categoria, metodo: m.metodo,
+    notas: m.notas || '', cc_sync_id: m.ccSyncId || null, cc_card: m.ccCard || null };
+}
+
+// Convertir movimiento de Supabase a app (camelCase)
+function sbToMov(r) {
+  return { id: r.id, tipo: r.tipo, ambito: r.ambito, monto: parseFloat(r.monto) || 0,
+    fecha: r.fecha, descripcion: r.descripcion, categoria: r.categoria,
+    metodo: r.metodo, notas: r.notas || '', ccSyncId: r.cc_sync_id, ccCard: r.cc_card };
+}
+
+function presToSB(p) {
+  return { cat: p.cat, limit_amount: p.limit || p.limit_amount || 0 };
+}
+
+function sbToPres(r) {
+  return { cat: r.cat, limit: parseFloat(r.limit_amount) || 0 };
+}
+
+function ccToSB(g) {
+  return { id: g.id, fecha: g.fecha, descripcion: g.descripcion, categoria: g.categoria || '',
+    moneda: g.moneda, monto_orig: g.montoOrig, monto_equiv_nio: g.montoEquivNIO,
+    tasa: g.tasa, ambito: g.ambito, notas: g.notas || '', cycle_key: g.cycleKey, card: g.card || 1 };
+}
+
+function sbToCC(r) {
+  return { id: r.id, fecha: r.fecha, descripcion: r.descripcion, categoria: r.categoria || '',
+    moneda: r.moneda, montoOrig: parseFloat(r.monto_orig) || 0,
+    montoEquivNIO: parseFloat(r.monto_equiv_nio) || 0, tasa: parseFloat(r.tasa) || 1,
+    ambito: r.ambito, notas: r.notas || '', cycleKey: r.cycle_key, card: r.card };
+}
+
+async function cloudLoad() {
   try {
     setSyncStatus('loading');
-    const data = await jsonpRequest(GS_CONFIG.scriptUrl + '?action=load&t=' + Date.now());
-    // Solo sobreescribir si no hay cambios locales recientes (últimos 30 segundos)
-    const lastLocalChange = parseInt(localStorage.getItem('fm_last_local_change') || '0');
-    const secondsSinceChange = (Date.now() - lastLocalChange) / 1000;
-    const safeToOverwrite = forceOverwrite || secondsSinceChange > 30;
-
-    if (safeToOverwrite) {
-      if (data && data.movimientos) {
-        state.movimientos = data.movimientos;
-        localStorage.setItem('fm_movs', JSON.stringify(data.movimientos));
-      }
-      if (data && data.presupuestos) {
-        state.presupuestos = data.presupuestos;
-        localStorage.setItem('fm_budgets', JSON.stringify(data.presupuestos));
-      }
-      if (data && data.cc1) {
-        localStorage.setItem('fm_cc_gastos_1', JSON.stringify(data.cc1));
-      }
-      if (data && data.cc2) {
-        localStorage.setItem('fm_cc_gastos_2', JSON.stringify(data.cc2));
-      }
-    } else {
-      // Hay cambios locales recientes — subir esos en vez de bajar
-      console.log('Cambios locales recientes detectados — subiendo en vez de bajar');
-      cloudSave();
-    }
+    const [movs, pres, cc1, cc2] = await Promise.all([
+      sbLoad('movimientos'),
+      sbLoad('presupuestos'),
+      sbLoad('tarjeta1'),
+      sbLoad('tarjeta2'),
+    ]);
+    state.movimientos = movs.map(sbToMov);
+    state.presupuestos = pres.map(sbToPres);
+    localStorage.setItem('fm_movs', JSON.stringify(state.movimientos));
+    localStorage.setItem('fm_budgets', JSON.stringify(state.presupuestos));
+    localStorage.setItem('fm_cc_gastos_1', JSON.stringify(cc1.map(sbToCC)));
+    localStorage.setItem('fm_cc_gastos_2', JSON.stringify(cc2.map(sbToCC)));
     state.lastSync = new Date();
-    state.cloudEnabled = true;
     setSyncStatus('ok');
     return true;
   } catch(e) {
@@ -1502,103 +1543,47 @@ async function cloudLoad(forceOverwrite = false) {
   }
 }
 
-async function manualSync() {
-  if (!isCloudEnabled()) { showToast('⚠️ Cloud no configurado'); return; }
-  // Sube los datos locales a Sheets — respeta borrados y cambios recientes
-  await cloudSave();
-  showToast('☁️ Datos guardados en la nube ✓');
+async function cloudSave() {
+  localStorage.setItem('fm_movs', JSON.stringify(state.movimientos));
+  localStorage.setItem('fm_budgets', JSON.stringify(state.presupuestos));
+  try {
+    setSyncStatus('saving');
+    const cc1 = JSON.parse(localStorage.getItem('fm_cc_gastos_1') || '[]');
+    const cc2 = JSON.parse(localStorage.getItem('fm_cc_gastos_2') || '[]');
+    await Promise.all([
+      state.movimientos.length ? sbUpsert('movimientos', state.movimientos.map(movToSB)) : Promise.resolve(),
+      state.presupuestos.length ? sbUpsert('presupuestos', state.presupuestos.map(presToSB)) : Promise.resolve(),
+      cc1.length ? sbUpsert('tarjeta1', cc1.map(ccToSB)) : Promise.resolve(),
+      cc2.length ? sbUpsert('tarjeta2', cc2.map(ccToSB)) : Promise.resolve(),
+    ]);
+    state.lastSync = new Date();
+    setSyncStatus('ok');
+  } catch(e) {
+    setSyncStatus('error');
+    console.warn('Cloud save failed:', e);
+  }
 }
 
-async function manualLoad() {
-  if (!isCloudEnabled()) { showToast('⚠️ Cloud no configurado'); return; }
-  if (!confirm('⚠️ Esto reemplazará tus datos locales con los de la nube.\n¿Continuar?')) return;
-  // Esperar 3 segundos para que Google procese el último guardado
-  showToast('⏳ Cargando desde la nube...');
-  await new Promise(r => setTimeout(r, 3000));
+// Borrar un movimiento directamente en Supabase
+async function cloudDeleteMov(id) {
+  try { await sbDelete('movimientos', id); } catch(e) { console.warn('Delete mov failed:', e); }
+}
+
+// Borrar un gasto de tarjeta directamente en Supabase
+async function cloudDeleteCC(n, id) {
+  try { await sbDelete('tarjeta'+n, id); } catch(e) { console.warn('Delete CC failed:', e); }
+}
+
+async function manualSync() {
   setSyncStatus('loading');
   const loaded = await cloudLoad();
   if (loaded) {
-    renderDashboard();
-    renderMovimientos();
-    renderBudgetUI();
-    renderTarjetaCard(1);
-    renderTarjetaCard(2);
-    showToast('☁️ Datos cargados desde la nube ✓');
+    renderDashboard(); renderMovimientos(); renderBudgetUI();
+    renderTarjetaCard(1); renderTarjetaCard(2);
+    showToast('☁️ Sincronizado ✓');
   } else {
-    showToast('⚠️ No se pudo conectar a la nube');
+    showToast('⚠️ No se pudo conectar');
   }
-}
-
-async function cloudSave() {
-  // Guardar local siempre primero (instantáneo)
-  localStorage.setItem('fm_movs', JSON.stringify(state.movimientos));
-  localStorage.setItem('fm_budgets', JSON.stringify(state.presupuestos));
-  if (!isCloudEnabled()) return;
-
-  for (let attempt = 1; attempt <= 3; attempt++) {
-    try {
-      setSyncStatus('saving');
-      const cc1 = JSON.parse(localStorage.getItem('fm_cc_gastos_1') || '[]');
-      const cc2 = JSON.parse(localStorage.getItem('fm_cc_gastos_2') || '[]');
-      const payload = {
-        movimientos: state.movimientos,
-        presupuestos: state.presupuestos,
-        cc1: cc1,
-        cc2: cc2,
-      };
-      const encoded = encodeURIComponent(JSON.stringify(payload));
-
-      if (encoded.length > 7000) {
-        // Payload grande — enviar en 2 partes SIN arrays vacíos
-        // Parte 1: movimientos y presupuestos
-        const p1 = { movimientos: state.movimientos, presupuestos: state.presupuestos };
-        await jsonpRequest(GS_CONFIG.scriptUrl + '?data=' + encodeURIComponent(JSON.stringify(p1)));
-        // Parte 2: tarjetas (solo si tienen datos)
-        if (cc1.length > 0 || cc2.length > 0) {
-          const p2 = {};
-          if (cc1.length > 0) p2.cc1 = cc1;
-          if (cc2.length > 0) p2.cc2 = cc2;
-          await jsonpRequest(GS_CONFIG.scriptUrl + '?data=' + encodeURIComponent(JSON.stringify(p2)));
-        }
-      } else {
-        await jsonpRequest(GS_CONFIG.scriptUrl + '?data=' + encoded);
-      }
-
-      state.lastSync = new Date();
-      setSyncStatus('ok');
-      return;
-    } catch(e) {
-      console.warn('Cloud save attempt ' + attempt + ' failed:', e);
-      if (attempt === 3) {
-        setSyncStatus('error');
-        localStorage.setItem('fm_pending_sync', 'true');
-      } else {
-        await new Promise(r => setTimeout(r, 2000));
-      }
-    }
-  }
-}
-
-// Reintentar sync pendiente cuando la página recupera foco
-document.addEventListener('visibilitychange', async () => {
-  if (!document.hidden && localStorage.getItem('fm_pending_sync') === 'true' && isCloudEnabled()) {
-    localStorage.removeItem('fm_pending_sync');
-    await cloudSave();
-    if (document.getElementById('syncStatus').innerHTML.includes('Sincronizado')) {
-      showToast('☁️ Sync pendiente completado ✓');
-    }
-  }
-});
-
-function setSyncStatus(status) {
-  const el = document.getElementById('syncStatus');
-  if (!el) return;
-  const icons   = { loading:'⟳', saving:'⟳', ok:'☁', error:'⚠' };
-  const colors  = { loading:'#1a4fad', saving:'var(--accent-blue)',
-                    ok:'#1a8c5b', error:'#d93025' };
-  const labels  = { loading:'Cargando...', saving:'Guardando...',
-                    ok:'Sincronizado ✓', error:'Sin conexión (datos locales)' };
-  el.innerHTML  = `<span style="color:${colors[status]}">${icons[status]} ${labels[status]}</span>`;
 }
 
 function save() {
@@ -1637,31 +1622,16 @@ window.onload = async function() {
   renderTarjetaCard(1);
   renderTarjetaCard(2);
 
-  // Siempre cargar desde Sheets al abrir
-  if (isCloudEnabled()) {
-    setSyncStatus('loading');
-    // Esperar 1.5s para que Google no devuelva caché
-    await new Promise(r => setTimeout(r, 1500));
-    const loaded = await cloudLoad();
-    if (loaded) {
-      renderDashboard();
-      renderMovimientos();
-      renderBudgetUI();
-      renderTarjetaCard(1);
-      renderTarjetaCard(2);
-    }
-  } else {
-    const el = document.getElementById('syncStatus');
-    if(el) el.innerHTML = '<span style="color:rgba(255,255,255,0.6)">💾 Solo local</span>';
+  // Cargar siempre desde Supabase al abrir — sin caché
+  setSyncStatus('loading');
+  const loaded = await cloudLoad();
+  if (loaded) {
+    renderDashboard();
+    renderMovimientos();
+    renderBudgetUI();
+    renderTarjetaCard(1);
+    renderTarjetaCard(2);
   }
-
-  // Auto-guardar a Sheets cada 60 segundos si hay cambios pendientes
-  setInterval(async () => {
-    if (isCloudEnabled() && localStorage.getItem('fm_pending_sync') === 'true') {
-      localStorage.removeItem('fm_pending_sync');
-      await cloudSave();
-    }
-  }, 60000);
 
   // Auto-save on page close
   window.addEventListener('beforeunload', () => {
@@ -1981,15 +1951,16 @@ function renderMovimientos() {
   bEl.style.color = bal >= 0 ? '#1a8c5b' : '#d93025';
 }
 
-function deleteMov(id) {
+async function deleteMov(id) {
   if (!confirm('¿Eliminar este movimiento?')) return;
   state.movimientos = state.movimientos.filter(m=>m.id!==id);
-  // Guardar timestamp del último cambio local
-  localStorage.setItem('fm_last_local_change', Date.now().toString());
-  save();
+  localStorage.setItem('fm_movs', JSON.stringify(state.movimientos));
+  // Borrar directamente en Supabase — sin caché
+  await cloudDeleteMov(id);
   renderDashboard();
   renderMovimientos();
   renderBudgetUI();
+  showToast('🗑 Movimiento eliminado ✓');
 }
 
 // ══════════════════════════════════════════════════
@@ -2315,7 +2286,9 @@ function agregarGastoTarjeta(n) {
   document.getElementById('ccDesc_'+n).value='';
   document.getElementById('ccNotas_'+n).value='';
   document.getElementById('ccCategoria_'+n).value='';
-  showToast('💳 TC'+n+' registrado'+(ambit!=='solo'?' y sincronizado ✓':' ✓'));
+  // Guardar tarjeta directamente en Supabase
+  sbUpsert('tarjeta'+n, [ccToSB(gastoCC)]).catch(e=>console.warn('CC save failed:',e));
+  showToast('💳 TC'+n+' registrado ✓');
   renderTarjetaCard(n);
 }
 
@@ -2326,11 +2299,14 @@ function deleteCCGasto(n, id) {
   localStorage.setItem('fm_cc_gastos_'+n, JSON.stringify(cc.filter(x=>x.id!==id)));
   if(g&&g.ambito!=='solo'){
     state.movimientos=state.movimientos.filter(m=>m.ccSyncId!==id);
-    save(); renderDashboard(); renderMovimientos();
-  } else {
-    cloudSave(); // Solo TC — sincronizar igual
+    localStorage.setItem('fm_movs', JSON.stringify(state.movimientos));
+    await cloudDeleteMov(g.ccSyncId);
+    renderDashboard(); renderMovimientos();
   }
+  // Borrar directamente en Supabase
+  await cloudDeleteCC(n, id);
   renderTarjetaCard(n);
+  showToast('🗑 Gasto de tarjeta eliminado ✓');
 }
 
 function renderTarjetaCard(n) {
