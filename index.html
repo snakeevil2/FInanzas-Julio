@@ -786,8 +786,7 @@
   </div>
   <div style="display:flex;align-items:center;gap:12px;">
     <div id="syncStatus" style="font-size:0.75rem;color:rgba(255,255,255,0.9);"></div>
-    <button onclick="manualSync()" title="Subir datos locales a la nube" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);border-radius:20px;color:rgba(255,255,255,0.9);font-size:0.75rem;padding:5px 12px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.25)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">⬆ Guardar</button>
-    <button onclick="manualLoad()" title="Cargar datos desde la nube" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);border-radius:20px;color:rgba(255,255,255,0.9);font-size:0.75rem;padding:5px 12px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.25)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">⬇ Cargar</button>
+    <button onclick="manualSync()" title="Guardar en la nube" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);border-radius:20px;color:rgba(255,255,255,0.9);font-size:0.75rem;padding:5px 12px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.25)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">☁️ Guardar</button>
     <div class="header-date" id="headerDate"></div>
   </div>
 </header>
@@ -1462,24 +1461,35 @@ function jsonpRequest(url) {
   });
 }
 
-async function cloudLoad() {
+async function cloudLoad(forceOverwrite = false) {
   if (!isCloudEnabled()) return false;
   try {
     setSyncStatus('loading');
     const data = await jsonpRequest(GS_CONFIG.scriptUrl + '?action=load&t=' + Date.now());
-    if (data && data.movimientos) {
-      state.movimientos = data.movimientos;
-      localStorage.setItem('fm_movs', JSON.stringify(data.movimientos));
-    }
-    if (data && data.presupuestos) {
-      state.presupuestos = data.presupuestos;
-      localStorage.setItem('fm_budgets', JSON.stringify(data.presupuestos));
-    }
-    if (data && data.cc1) {
-      localStorage.setItem('fm_cc_gastos_1', JSON.stringify(data.cc1));
-    }
-    if (data && data.cc2) {
-      localStorage.setItem('fm_cc_gastos_2', JSON.stringify(data.cc2));
+    // Solo sobreescribir si no hay cambios locales recientes (últimos 30 segundos)
+    const lastLocalChange = parseInt(localStorage.getItem('fm_last_local_change') || '0');
+    const secondsSinceChange = (Date.now() - lastLocalChange) / 1000;
+    const safeToOverwrite = forceOverwrite || secondsSinceChange > 30;
+
+    if (safeToOverwrite) {
+      if (data && data.movimientos) {
+        state.movimientos = data.movimientos;
+        localStorage.setItem('fm_movs', JSON.stringify(data.movimientos));
+      }
+      if (data && data.presupuestos) {
+        state.presupuestos = data.presupuestos;
+        localStorage.setItem('fm_budgets', JSON.stringify(data.presupuestos));
+      }
+      if (data && data.cc1) {
+        localStorage.setItem('fm_cc_gastos_1', JSON.stringify(data.cc1));
+      }
+      if (data && data.cc2) {
+        localStorage.setItem('fm_cc_gastos_2', JSON.stringify(data.cc2));
+      }
+    } else {
+      // Hay cambios locales recientes — subir esos en vez de bajar
+      console.log('Cambios locales recientes detectados — subiendo en vez de bajar');
+      cloudSave();
     }
     state.lastSync = new Date();
     state.cloudEnabled = true;
@@ -1619,7 +1629,7 @@ window.onload = async function() {
   document.getElementById('ccFecha_1').value = now.toISOString().slice(0,10);
   document.getElementById('ccFecha_2').value = now.toISOString().slice(0,10);
 
-  // Show app immediately with local data
+  // Mostrar app con datos locales mientras carga
   renderDashboard();
   renderMovimientos();
   renderBudgetUI();
@@ -1627,9 +1637,11 @@ window.onload = async function() {
   renderTarjetaCard(1);
   renderTarjetaCard(2);
 
-  // Load from cloud and refresh all views
+  // Siempre cargar desde Sheets al abrir
   if (isCloudEnabled()) {
     setSyncStatus('loading');
+    // Esperar 1.5s para que Google no devuelva caché
+    await new Promise(r => setTimeout(r, 1500));
     const loaded = await cloudLoad();
     if (loaded) {
       renderDashboard();
@@ -1637,12 +1649,19 @@ window.onload = async function() {
       renderBudgetUI();
       renderTarjetaCard(1);
       renderTarjetaCard(2);
-      showToast('☁️ Datos cargados desde la nube ✓');
     }
   } else {
     const el = document.getElementById('syncStatus');
     if(el) el.innerHTML = '<span style="color:rgba(255,255,255,0.6)">💾 Solo local</span>';
   }
+
+  // Auto-guardar a Sheets cada 60 segundos si hay cambios pendientes
+  setInterval(async () => {
+    if (isCloudEnabled() && localStorage.getItem('fm_pending_sync') === 'true') {
+      localStorage.removeItem('fm_pending_sync');
+      await cloudSave();
+    }
+  }, 60000);
 
   // Auto-save on page close
   window.addEventListener('beforeunload', () => {
@@ -1739,6 +1758,7 @@ function agregarMovimiento() {
   };
 
   state.movimientos.unshift(mov);
+  localStorage.setItem('fm_last_local_change', Date.now().toString());
   save();
 
   // reset
@@ -1964,6 +1984,8 @@ function renderMovimientos() {
 function deleteMov(id) {
   if (!confirm('¿Eliminar este movimiento?')) return;
   state.movimientos = state.movimientos.filter(m=>m.id!==id);
+  // Guardar timestamp del último cambio local
+  localStorage.setItem('fm_last_local_change', Date.now().toString());
   save();
   renderDashboard();
   renderMovimientos();
