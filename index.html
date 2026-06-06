@@ -786,7 +786,8 @@
   </div>
   <div style="display:flex;align-items:center;gap:12px;">
     <div id="syncStatus" style="font-size:0.75rem;color:rgba(255,255,255,0.9);"></div>
-    <button onclick="manualSync()" title="Sincronizar ahora" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);border-radius:20px;color:rgba(255,255,255,0.9);font-size:0.75rem;padding:5px 12px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.25)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">⟳ Sincronizar</button>
+    <button onclick="manualSync()" title="Subir datos locales a la nube" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);border-radius:20px;color:rgba(255,255,255,0.9);font-size:0.75rem;padding:5px 12px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.25)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">⬆ Guardar</button>
+    <button onclick="manualLoad()" title="Cargar datos desde la nube" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);border-radius:20px;color:rgba(255,255,255,0.9);font-size:0.75rem;padding:5px 12px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.25)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">⬇ Cargar</button>
     <div class="header-date" id="headerDate"></div>
   </div>
 </header>
@@ -1492,10 +1493,15 @@ async function cloudLoad() {
 }
 
 async function manualSync() {
-  if (!isCloudEnabled()) {
-    showToast('⚠️ Cloud no configurado');
-    return;
-  }
+  if (!isCloudEnabled()) { showToast('⚠️ Cloud no configurado'); return; }
+  // Sube los datos locales a Sheets — respeta borrados y cambios recientes
+  await cloudSave();
+  showToast('☁️ Datos guardados en la nube ✓');
+}
+
+async function manualLoad() {
+  if (!isCloudEnabled()) { showToast('⚠️ Cloud no configurado'); return; }
+  if (!confirm('⚠️ Esto reemplazará tus datos locales con los de la nube.\n¿Continuar?')) return;
   setSyncStatus('loading');
   const loaded = await cloudLoad();
   if (loaded) {
@@ -1504,7 +1510,7 @@ async function manualSync() {
     renderBudgetUI();
     renderTarjetaCard(1);
     renderTarjetaCard(2);
-    showToast('☁️ Datos sincronizados desde la nube ✓');
+    showToast('☁️ Datos cargados desde la nube ✓');
   } else {
     showToast('⚠️ No se pudo conectar a la nube');
   }
