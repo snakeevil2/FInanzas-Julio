@@ -781,13 +781,13 @@
     .tabs { display: none !important; }
 
     .bottom-nav {
-      display: flex;
+      display: flex !important;
       position: fixed;
       bottom: 0; left: 0; right: 0;
       background: #ffffff;
       border-top: 2px solid rgba(26,79,173,0.12);
       box-shadow: 0 -6px 24px rgba(26,79,173,0.12);
-      z-index: 1000;
+      z-index: 9999;
       height: 72px;
       padding: 0 4px;
       padding-bottom: env(safe-area-inset-bottom);
@@ -1029,6 +1029,54 @@
         <div class="kpi-label">Tasa de Ahorro</div>
         <div class="kpi-value" id="kpiAhorro">0%</div>
         <div class="kpi-sub">Del total de ingresos</div>
+      </div>
+    </div>
+
+    <!-- GANANCIA NEGOCIO WIDGET -->
+    <div id="dashNegocioWidget" style="margin-bottom:20px;">
+      <div class="card" style="border-color:rgba(33,118,210,0.25);">
+        <div class="card-header" style="border-color:rgba(33,118,210,0.15);">
+          <div class="card-title">🏢 Resumen Mensual del Negocio</div>
+          <span id="dashNegocioMes" style="font-size:0.78rem;color:var(--text-muted);"></span>
+        </div>
+        <div style="padding:16px 22px;">
+          <!-- Input ganancia bruta -->
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap;">
+            <div style="flex:1;min-width:200px;">
+              <label style="font-size:0.72rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:5px;">Ganancia bruta del mes (de tu sistema)</label>
+              <div style="display:flex;gap:8px;align-items:center;">
+                <input type="number" id="inputGananciaBruta" placeholder="0.00" min="0" step="0.01"
+                  style="background:#f4f8ff;border:1px solid rgba(30,80,180,0.2);border-radius:8px;padding:9px 12px;font-size:0.9rem;font-weight:600;color:#1a4fad;width:100%;font-family:'DM Sans',sans-serif;"
+                  oninput="calcGananciaNegocio()">
+                <button onclick="saveGananciaBruta()" style="background:#1a4fad;color:#fff;border:none;border-radius:8px;padding:9px 16px;font-family:'DM Sans',sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;white-space:nowrap;">💾 Guardar</button>
+              </div>
+            </div>
+          </div>
+          <!-- Resultados -->
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;" id="negocioResultGrid">
+            <div style="background:#e8f0fb;border-radius:10px;padding:14px 12px;text-align:center;">
+              <div style="font-size:0.65rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px;">Ganancia Bruta</div>
+              <div style="font-size:1.1rem;font-family:'DM Serif Display',serif;color:#1a4fad;" id="negBruta">C$0.00</div>
+            </div>
+            <div style="background:#e8f0fb;border-radius:10px;padding:14px 12px;text-align:center;">
+              <div style="font-size:0.65rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px;">Gastos Negocio</div>
+              <div style="font-size:1.1rem;font-family:'DM Serif Display',serif;color:#d93025;" id="negGastos">C$0.00</div>
+            </div>
+            <div style="background:#e8f0fb;border-radius:10px;padding:14px 12px;text-align:center;">
+              <div style="font-size:0.65rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px;">Ganancia Neta</div>
+              <div style="font-size:1.1rem;font-family:'DM Serif Display',serif;color:#1a8c5b;" id="negNeta">C$0.00</div>
+            </div>
+            <div style="background:rgba(26,79,173,0.08);border:1px solid rgba(26,79,173,0.2);border-radius:10px;padding:14px 12px;text-align:center;">
+              <div style="font-size:0.65rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px;">Diezmo (10%)</div>
+              <div style="font-size:1.1rem;font-family:'DM Serif Display',serif;color:#1a4fad;" id="negDiezmo">C$0.00</div>
+            </div>
+          </div>
+          <!-- Total final -->
+          <div style="margin-top:14px;padding:12px 16px;background:linear-gradient(135deg,#1a4fad,#2176d2);border-radius:10px;display:flex;justify-content:space-between;align-items:center;">
+            <div style="color:rgba(255,255,255,0.85);font-size:0.82rem;font-weight:600;">💰 Ganancia Final (después de diezmo)</div>
+            <div style="font-family:'DM Serif Display',serif;font-size:1.3rem;color:#ffffff;" id="negFinal">C$0.00</div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -1979,7 +2027,46 @@ function updateMonthLabel() {
 }
 
 function getMonthMovs(month) {
-  return state.movimientos.filter(m => m.fecha.startsWith(month));
+  return state.movimientos.filter(m => m.fecha && String(m.fecha).slice(0,7) === month);
+}
+
+// ── GANANCIA NEGOCIO ──────────────────────────────
+
+function calcGananciaNegocio() {
+  const month = state.currentMonth;
+  const movs = getMonthMovs(month);
+  const bruta = parseFloat(document.getElementById('inputGananciaBruta').value) || 0;
+  const gastosNeg = movs.filter(m=>m.tipo==='gasto'&&m.ambito==='negocio').reduce((s,m)=>s+m.monto,0);
+  const neta = Math.max(0, bruta - gastosNeg);
+  const diezmo = neta * 0.10;
+  const final = neta - diezmo;
+
+  document.getElementById('negBruta').textContent = fmt(bruta);
+  document.getElementById('negGastos').textContent = fmt(gastosNeg);
+  document.getElementById('negNeta').textContent = fmt(neta);
+  document.getElementById('negDiezmo').textContent = fmt(diezmo);
+  document.getElementById('negFinal').textContent = fmt(final);
+  document.getElementById('dashNegocioMes').textContent = new Date(month+'-01T12:00:00').toLocaleDateString('es-NI',{month:'long',year:'numeric'});
+}
+
+function saveGananciaBruta() {
+  const month = state.currentMonth;
+  const bruta = parseFloat(document.getElementById('inputGananciaBruta').value) || 0;
+  // Guardar en localStorage por mes
+  const ganMap = JSON.parse(localStorage.getItem('fm_ganancias_negocio') || '{}');
+  ganMap[month] = bruta;
+  localStorage.setItem('fm_ganancias_negocio', JSON.stringify(ganMap));
+  calcGananciaNegocio();
+  showToast('💾 Ganancia del mes guardada ✓');
+}
+
+function loadGananciaBruta() {
+  const month = state.currentMonth;
+  const ganMap = JSON.parse(localStorage.getItem('fm_ganancias_negocio') || '{}');
+  const bruta = ganMap[month] || 0;
+  const input = document.getElementById('inputGananciaBruta');
+  if (input) input.value = bruta > 0 ? bruta : '';
+  calcGananciaNegocio();
 }
 
 function renderDashboard() {
@@ -2004,6 +2091,8 @@ function renderDashboard() {
   renderCompare(movs);
   renderDashTable(movs);
   if (typeof renderCCDashWidget === 'function') renderCCDashWidget();
+  // Ganancia negocio
+  loadGananciaBruta();
 }
 
 function renderDonut(movs) {
