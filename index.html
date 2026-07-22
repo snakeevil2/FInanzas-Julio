@@ -1425,6 +1425,15 @@
                 <div class="form-group"><label>Categoría</label><select id="ccCategoria_1"><option value="">— Seleccionar —</option></select></div>
               </div>
               <div class="form-group" style="margin-bottom:16px;"><label>Notas (opcional)</label><textarea id="ccNotas_1" rows="2" placeholder="Detalle del gasto..."></textarea></div>
+              <div class="form-group" style="margin-bottom:16px;">
+                <label>Foto de Respaldo (opcional)</label>
+                <input type="file" id="ccFotoInput_1" accept="image/*" capture="environment" style="display:none;" onchange="handleCCFotoInput(1, event)">
+                <div id="ccFotoPreviewWrap_1" style="display:none; position:relative; width:120px; margin-bottom:8px;">
+                  <img id="ccFotoPreview_1" src="" alt="Foto respaldo" style="width:120px; height:120px; object-fit:cover; border-radius:10px; border:1px solid var(--border);">
+                  <button type="button" onclick="quitarCCFoto(1)" style="position:absolute; top:-8px; right:-8px; width:22px; height:22px; border-radius:50%; border:none; background:#d93025; color:#fff; cursor:pointer; font-size:0.75rem; line-height:1;">✕</button>
+                </div>
+                <button type="button" class="btn-sm" onclick="document.getElementById('ccFotoInput_1').click()">📷 Tomar / Adjuntar Foto</button>
+              </div>
               <button class="btn-primary" style="background:linear-gradient(135deg,#0ea5e9,#0284c7);" onclick="agregarGastoTarjeta(1)">💳 Registrar en Tarjeta 1</button>
             </div>
           </div>
@@ -1464,7 +1473,7 @@
             <button class="filter-chip" onclick="setCCFilter(1,'negocio',this)">🏢 Negocio</button>
           </div>
         </div>
-        <div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Descripción</th><th>Categoría</th><th>Moneda</th><th>Ámbito</th><th style="text-align:right;">Monto</th><th style="text-align:right;">Equiv. C$</th><th>Ciclo</th><th></th></tr></thead><tbody id="ccTable_1"></tbody></table></div>
+        <div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Descripción</th><th>Categoría</th><th>Moneda</th><th>Ámbito</th><th style="text-align:right;">Monto</th><th style="text-align:right;">Equiv. C$</th><th>Ciclo</th><th></th><th></th></tr></thead><tbody id="ccTable_1"></tbody></table></div>
         <div style="padding:14px 22px; border-top:1px solid var(--border); display:flex; justify-content:flex-end; gap:28px; font-size:0.82rem; flex-wrap:wrap;">
           <span>Total USD: <strong id="ccTotalUSD_1" style="color:var(--card-usd);">$0.00</strong></span>
           <span>Total C$: <strong id="ccTotalNIO_1" style="color:var(--card-nio);">C$0.00</strong></span>
@@ -1533,6 +1542,15 @@
                 <div class="form-group"><label>Categoría</label><select id="ccCategoria_2"><option value="">— Seleccionar —</option></select></div>
               </div>
               <div class="form-group" style="margin-bottom:16px;"><label>Notas (opcional)</label><textarea id="ccNotas_2" rows="2" placeholder="Detalle del gasto..."></textarea></div>
+              <div class="form-group" style="margin-bottom:16px;">
+                <label>Foto de Respaldo (opcional)</label>
+                <input type="file" id="ccFotoInput_2" accept="image/*" capture="environment" style="display:none;" onchange="handleCCFotoInput(2, event)">
+                <div id="ccFotoPreviewWrap_2" style="display:none; position:relative; width:120px; margin-bottom:8px;">
+                  <img id="ccFotoPreview_2" src="" alt="Foto respaldo" style="width:120px; height:120px; object-fit:cover; border-radius:10px; border:1px solid var(--border);">
+                  <button type="button" onclick="quitarCCFoto(2)" style="position:absolute; top:-8px; right:-8px; width:22px; height:22px; border-radius:50%; border:none; background:#d93025; color:#fff; cursor:pointer; font-size:0.75rem; line-height:1;">✕</button>
+                </div>
+                <button type="button" class="btn-sm" onclick="document.getElementById('ccFotoInput_2').click()">📷 Tomar / Adjuntar Foto</button>
+              </div>
               <button class="btn-primary" style="background:linear-gradient(135deg,#6366f1,#4f46e5);" onclick="agregarGastoTarjeta(2)">💳 Registrar en Tarjeta 2</button>
             </div>
           </div>
@@ -1572,7 +1590,7 @@
             <button class="filter-chip" onclick="setCCFilter(2,'negocio',this)">🏢 Negocio</button>
           </div>
         </div>
-        <div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Descripción</th><th>Categoría</th><th>Moneda</th><th>Ámbito</th><th style="text-align:right;">Monto</th><th style="text-align:right;">Equiv. C$</th><th>Ciclo</th><th></th></tr></thead><tbody id="ccTable_2"></tbody></table></div>
+        <div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Descripción</th><th>Categoría</th><th>Moneda</th><th>Ámbito</th><th style="text-align:right;">Monto</th><th style="text-align:right;">Equiv. C$</th><th>Ciclo</th><th></th><th></th></tr></thead><tbody id="ccTable_2"></tbody></table></div>
         <div style="padding:14px 22px; border-top:1px solid var(--border); display:flex; justify-content:flex-end; gap:28px; font-size:0.82rem; flex-wrap:wrap;">
           <span>Total USD: <strong id="ccTotalUSD_2" style="color:var(--card-usd);">$0.00</strong></span>
           <span>Total C$: <strong id="ccTotalNIO_2" style="color:#6366f1;">C$0.00</strong></span>
@@ -1721,14 +1739,16 @@ function sbToPres(r) {
 function ccToSB(g) {
   return { id: g.id, fecha: g.fecha, descripcion: g.descripcion, categoria: g.categoria || '',
     moneda: g.moneda, monto_orig: g.montoOrig, monto_equiv_nio: g.montoEquivNIO,
-    tasa: g.tasa, ambito: g.ambito, notas: g.notas || '', cycle_key: g.cycleKey, card: g.card || 1 };
+    tasa: g.tasa, ambito: g.ambito, notas: g.notas || '', cycle_key: g.cycleKey, card: g.card || 1,
+    foto: g.foto || null };
 }
 
 function sbToCC(r) {
   return { id: r.id, fecha: r.fecha, descripcion: r.descripcion, categoria: r.categoria || '',
     moneda: r.moneda, montoOrig: parseFloat(r.monto_orig) || 0,
     montoEquivNIO: parseFloat(r.monto_equiv_nio) || 0, tasa: parseFloat(r.tasa) || 1,
-    ambito: r.ambito, notas: r.notas || '', cycleKey: r.cycle_key, card: r.card };
+    ambito: r.ambito, notas: r.notas || '', cycleKey: r.cycle_key, card: r.card,
+    foto: r.foto || null };
 }
 
 async function cloudLoad() {
@@ -1855,6 +1875,36 @@ function comprimirFoto(file) {
     };
     reader.readAsDataURL(file);
   });
+}
+
+let ccFotoActual = { 1: null, 2: null };
+
+function handleCCFotoInput(n, event) {
+  const file = event.target.files && event.target.files[0];
+  if (!file) return;
+  comprimirFoto(file).then(dataUrl => {
+    ccFotoActual[n] = dataUrl;
+    document.getElementById('ccFotoPreview_'+n).src = dataUrl;
+    document.getElementById('ccFotoPreviewWrap_'+n).style.display = 'block';
+  }).catch(() => {
+    showToast('⚠️ No se pudo procesar la foto');
+  });
+  event.target.value = '';
+}
+
+function quitarCCFoto(n) {
+  ccFotoActual[n] = null;
+  document.getElementById('ccFotoInput_'+n).value = '';
+  document.getElementById('ccFotoPreviewWrap_'+n).style.display = 'none';
+  document.getElementById('ccFotoPreview_'+n).src = '';
+}
+
+function verFotoCC(n, id) {
+  const cc = JSON.parse(localStorage.getItem('fm_cc_gastos_'+n)||'[]');
+  const g = cc.find(x => x.id === id);
+  if (!g || !g.foto) return;
+  document.getElementById('fotoLightboxImg').src = g.foto;
+  document.getElementById('fotoLightbox').style.display = 'flex';
 }
 
 function verFoto(id) {
@@ -2617,14 +2667,15 @@ function agregarGastoTarjeta(n) {
   const cur=ccState[n].currency, ambit=ccState[n].ambit;
   const cycleKey=getCycleKey(fecha,diaCorte);
   const montoEquivNIO=cur==='USD'?monto*tasa:monto;
-  const gastoCC={id:Date.now(),fecha,descripcion:desc,categoria:cat,moneda:cur,montoOrig:monto,montoEquivNIO,tasa:cur==='USD'?tasa:1,ambito:ambit,notas,cycleKey,card:n};
+  const foto=ccFotoActual[n]||null;
+  const gastoCC={id:Date.now(),fecha,descripcion:desc,categoria:cat,moneda:cur,montoOrig:monto,montoEquivNIO,tasa:cur==='USD'?tasa:1,ambito:ambit,notas,cycleKey,card:n,foto};
   const ccGastos=JSON.parse(localStorage.getItem('fm_cc_gastos_'+n)||'[]');
   ccGastos.unshift(gastoCC);
   localStorage.setItem('fm_cc_gastos_'+n, JSON.stringify(ccGastos));
   const cfg=JSON.parse(localStorage.getItem('fm_cc_config_'+n)||'{}');
   const lbl=cfg.nombre?`TC${n}:${cfg.nombre}`:`TC${n}`;
   if(ambit!=='solo'){
-    const movSync={id:Date.now()+1,tipo:'gasto',ambito:ambit,monto:montoEquivNIO,fecha,descripcion:`[💳 ${lbl}] ${desc}`,categoria:cat,metodo:'tarjeta',notas:`${lbl} · ${cur==='USD'?'$'+monto.toFixed(2)+' USD':'C$'+monto.toFixed(2)} · ${notas}`,ccSyncId:gastoCC.id,ccCard:n};
+    const movSync={id:Date.now()+1,tipo:'gasto',ambito:ambit,monto:montoEquivNIO,fecha,descripcion:`[💳 ${lbl}] ${desc}`,categoria:cat,metodo:'tarjeta',notas:`${lbl} · ${cur==='USD'?'$'+monto.toFixed(2)+' USD':'C$'+monto.toFixed(2)} · ${notas}`,ccSyncId:gastoCC.id,ccCard:n,foto};
     state.movimientos.unshift(movSync);
     save(); // save() llama cloudSave() — sincroniza movimientos + tarjetas
     renderDashboard(); renderMovimientos();
@@ -2636,6 +2687,7 @@ function agregarGastoTarjeta(n) {
   document.getElementById('ccDesc_'+n).value='';
   document.getElementById('ccNotas_'+n).value='';
   document.getElementById('ccCategoria_'+n).value='';
+  quitarCCFoto(n);
   // Guardar tarjeta directamente en Supabase
   sbUpsert('tarjeta'+n, [ccToSB(gastoCC)]).catch(e=>console.warn('CC save failed:',e));
   showToast('💳 TC'+n+' registrado ✓');
@@ -2745,11 +2797,11 @@ function renderCCTable(n) {
   const cur=getCurrentCycleKeyFor(n), ac=n===1?'#0ea5e9':'#6366f1';
   const tb=document.getElementById('ccTable_'+n);
   tb.innerHTML=!fl.length
-    ?`<tr><td colspan="9"><div class="empty-state"><div class="icon">💳</div><p>Sin gastos registrados</p></div></td></tr>`
+    ?`<tr><td colspan="10"><div class="empty-state"><div class="icon">💳</div><p>Sin gastos registrados</p></div></td></tr>`
     :fl.map(g=>{
         const ci=allCats.find(c=>c.id===g.categoria);
         const al=g.ambito==='solo'?'💳 Solo':g.ambito==='personal'?'👤 Personal':'🏢 Negocio';
-        return `<tr class="cc-gasto-row"><td style="color:var(--text-muted);">${g.fecha}</td><td>${g.descripcion}${g.ambito!=='solo'?` <span class="sync-indicator" style="font-size:0.65rem;padding:1px 6px;">⇄</span>`:''}</td><td>${ci?ci.label:'—'}</td><td><span class="badge-${g.moneda==='USD'?'usd':'nio'}">${g.moneda}</span></td><td>${al}</td><td style="text-align:right;font-weight:600;color:${g.moneda==='USD'?'var(--card-usd)':ac};">${g.moneda==='USD'?'$':'C$'}${g.montoOrig.toFixed(2)}</td><td style="text-align:right;color:var(--text-muted);">C$${g.montoEquivNIO.toFixed(2)}</td><td><span style="font-size:0.72rem;${getCycleKey(g.fecha,diaCorteT)===cur?'color:'+ac+';font-weight:600;':'color:var(--text-muted);'}">${getCycleLabel(g.cycleKey)}</span></td><td><button class="delete-btn" onclick="deleteCCGasto(${n},${g.id})">✕</button></td></tr>`;
+        return `<tr class="cc-gasto-row"><td style="color:var(--text-muted);">${g.fecha}</td><td>${g.descripcion}${g.ambito!=='solo'?` <span class="sync-indicator" style="font-size:0.65rem;padding:1px 6px;">⇄</span>`:''}</td><td>${ci?ci.label:'—'}</td><td><span class="badge-${g.moneda==='USD'?'usd':'nio'}">${g.moneda}</span></td><td>${al}</td><td style="text-align:right;font-weight:600;color:${g.moneda==='USD'?'var(--card-usd)':ac};">${g.moneda==='USD'?'$':'C$'}${g.montoOrig.toFixed(2)}</td><td style="text-align:right;color:var(--text-muted);">C$${g.montoEquivNIO.toFixed(2)}</td><td><span style="font-size:0.72rem;${getCycleKey(g.fecha,diaCorteT)===cur?'color:'+ac+';font-weight:600;':'color:var(--text-muted);'}">${getCycleLabel(g.cycleKey)}</span></td><td>${g.foto?`<button class="btn-sm" title="Ver foto" onclick="verFotoCC(${n},${g.id})">📷</button>`:''}</td><td><button class="delete-btn" onclick="deleteCCGasto(${n},${g.id})">✕</button></td></tr>`;
       }).join('');
   document.getElementById('ccTotalUSD_'+n).textContent='$'+fl.filter(g=>g.moneda==='USD').reduce((s,g)=>s+g.montoOrig,0).toFixed(2);
   document.getElementById('ccTotalNIO_'+n).textContent='C$'+fl.filter(g=>g.moneda==='NIO').reduce((s,g)=>s+g.montoOrig,0).toFixed(2);
