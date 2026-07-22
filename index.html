@@ -131,55 +131,55 @@
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    padding: 14px 18px;
+    padding: 18px 20px;
     margin-bottom: 20px;
   }
 
   .rs-row {
     display: grid;
-    grid-template-columns: 1.3fr 1fr 1fr 1fr;
+    grid-template-columns: 1fr 1fr 1fr;
     align-items: center;
-    padding: 7px 0;
+    padding: 14px 0;
   }
 
   .rs-row + .rs-row { border-top: 1px solid var(--border); }
 
-  .rs-cell { text-align: right; font-size: 0.86rem; font-weight: 600; }
+  .rs-cell { text-align: right; font-size: 0.9rem; font-weight: 600; }
 
   .rs-head .rs-cell {
-    font-size: 0.62rem;
+    font-size: 0.66rem;
     color: var(--text-light);
     text-transform: uppercase;
     letter-spacing: 0.06em;
     font-weight: 600;
   }
 
-  .rs-cell.rs-label { text-align: left; font-weight: 600; color: var(--text); font-size: 0.82rem; }
+  .rs-cell.rs-label { text-align: left; font-weight: 600; color: var(--text); font-size: 0.84rem; }
   .rs-head .rs-cell.rs-label { visibility: hidden; }
 
   .rs-cell.rs-in { color: var(--green); }
   .rs-cell.rs-out { color: var(--red); }
   .rs-cell.rs-bal { font-family: 'DM Serif Display', serif; }
 
-  .rs-row.rs-total { border-top: 2px solid var(--border2); margin-top: 2px; padding-top: 9px; }
-  .rs-row.rs-total .rs-cell { font-size: 0.95rem; }
+  .rs-row.rs-total { border-top: 2px solid var(--border2); margin-top: 2px; padding-top: 16px; }
+  .rs-row.rs-total .rs-cell { font-size: 1rem; }
 
   .rs-ahorro {
-    margin-top: 8px;
-    padding-top: 8px;
+    margin-top: 12px;
+    padding-top: 12px;
     border-top: 1px solid var(--border);
-    font-size: 0.76rem;
+    font-size: 0.78rem;
     color: var(--text-muted);
     text-align: right;
   }
   .rs-ahorro strong { color: var(--blue); }
 
   @media (max-width: 500px) {
-    .resumen-split { padding: 12px 14px; }
-    .rs-row { grid-template-columns: 1fr 0.85fr 0.85fr 0.85fr; }
-    .rs-cell { font-size: 0.76rem; }
-    .rs-cell.rs-label { font-size: 0.72rem; }
-    .rs-row.rs-total .rs-cell { font-size: 0.84rem; }
+    .resumen-split { padding: 16px 16px; }
+    .rs-row { padding: 12px 0; }
+    .rs-cell { font-size: 0.82rem; }
+    .rs-cell.rs-label { font-size: 0.76rem; }
+    .rs-row.rs-total .rs-cell { font-size: 0.9rem; }
   }
 
   /* ── GRID 2COL ── */
@@ -894,7 +894,7 @@
       <span class="tab-icon">✦</span> Mentoría
     </button>
     <button class="tab" onclick="showSection('tarjeta', this)">
-      <span class="tab-icon">💳</span> Tarjeta
+      <span class="tab-icon">▭</span> Tarjeta
     </button>
   </div>
 
@@ -904,11 +904,11 @@
   <!-- ── BOTTOM NAV (solo móvil) ── -->
   <div class="bottom-nav">
     <button class="bottom-nav-btn active" id="bnDashboard" onclick="showSection('dashboard', this); setBottomNav('bnDashboard')">
-      <div class="nav-icon-box">🏠</div>
+      <div class="nav-icon-box">◎</div>
       <span>Inicio</span>
     </button>
     <button class="bottom-nav-btn" id="bnMovimientos" onclick="showSection('movimientos', this); setBottomNav('bnMovimientos')">
-      <div class="nav-icon-box">📋</div>
+      <div class="nav-icon-box">≡</div>
       <span>Gastos</span>
     </button>
     <button class="bottom-nav-btn nav-register" id="bnRegistrar" onclick="showSection('registro', this); setBottomNav('bnRegistrar')">
@@ -916,7 +916,7 @@
       <span>Registrar</span>
     </button>
     <button class="bottom-nav-btn" id="bnTarjeta" onclick="showSection('tarjeta', this); setBottomNav('bnTarjeta')">
-      <div class="nav-icon-box">💳</div>
+      <div class="nav-icon-box">▭</div>
       <span>Tarjeta</span>
     </button>
     <button class="bottom-nav-btn" id="bnMas" onclick="toggleMasMenu()">
@@ -928,7 +928,7 @@
   <!-- Menú "Más" para móvil -->
   <div class="mas-menu" id="masMenu" style="display:none;">
     <button class="mas-menu-btn" onclick="showSection('presupuesto', null); setBottomNav(null); closeMasMenu();">
-      📊 Presupuesto
+      ◷ Presupuesto
     </button>
     <button class="mas-menu-btn" onclick="showSection('consejos', null); setBottomNav(null); closeMasMenu();">
       ✦ Mentoría
@@ -955,29 +955,25 @@
       <div class="resumen-split" id="resumenSplit">
         <div class="rs-row rs-head">
           <div class="rs-cell rs-label">—</div>
-          <div class="rs-cell">Ingresos</div>
-          <div class="rs-cell">Gastos</div>
-          <div class="rs-cell">Balance</div>
+          <div class="rs-cell">Personal</div>
+          <div class="rs-cell">Negocio</div>
         </div>
         <div class="rs-row">
-          <div class="rs-cell rs-label">👤 Personal</div>
-          <div class="rs-cell rs-in" id="rsPersonalIn">$0</div>
-          <div class="rs-cell rs-out" id="rsPersonalOut">$0</div>
-          <div class="rs-cell rs-bal" id="rsPersonalBal">$0</div>
+          <div class="rs-cell rs-label">Gastos</div>
+          <div class="rs-cell rs-out" id="rsGastosPersonal">$0</div>
+          <div class="rs-cell rs-out" id="rsGastosNegocio">$0</div>
         </div>
         <div class="rs-row">
-          <div class="rs-cell rs-label">🏢 Negocio</div>
-          <div class="rs-cell rs-in" id="rsNegocioIn">$0</div>
-          <div class="rs-cell rs-out" id="rsNegocioOut">$0</div>
-          <div class="rs-cell rs-bal" id="rsNegocioBal">$0</div>
+          <div class="rs-cell rs-label">Ingresos</div>
+          <div class="rs-cell rs-in" id="rsIngresosPersonal">$0</div>
+          <div class="rs-cell rs-in" id="rsIngresosNegocio">$0</div>
         </div>
         <div class="rs-row rs-total">
-          <div class="rs-cell rs-label">Total</div>
-          <div class="rs-cell rs-in" id="rsTotalIn">$0</div>
-          <div class="rs-cell rs-out" id="rsTotalOut">$0</div>
-          <div class="rs-cell rs-bal" id="rsTotalBal">$0</div>
+          <div class="rs-cell rs-label">Balance</div>
+          <div class="rs-cell rs-bal" id="rsBalancePersonal">$0</div>
+          <div class="rs-cell rs-bal" id="rsBalanceNegocio">$0</div>
         </div>
-        <div class="rs-ahorro">💰 Tasa de ahorro: <strong id="kpiAhorro">0%</strong></div>
+        <div class="rs-ahorro">Tasa de ahorro: <strong id="kpiAhorro">0%</strong></div>
       </div>
     </div><!-- /section-sticky -->
 
@@ -1112,8 +1108,8 @@
           <div class="form-group" style="margin-bottom:14px;">
             <label>Tipo de Movimiento</label>
             <div class="type-toggle">
-              <button class="type-btn active-income" id="btnIngreso" onclick="setMovType('ingreso')">📈 Ingreso</button>
-              <button class="type-btn" id="btnGasto" onclick="setMovType('gasto')">📉 Gasto</button>
+              <button class="type-btn active-income" id="btnIngreso" onclick="setMovType('ingreso')">Ingreso</button>
+              <button class="type-btn" id="btnGasto" onclick="setMovType('gasto')">Gasto</button>
             </div>
           </div>
 
@@ -1121,8 +1117,8 @@
           <div class="form-group" style="margin-bottom:14px;">
             <label>Ámbito</label>
             <div class="type-toggle">
-              <button class="type-btn active-personal" id="btnPersonal" onclick="setAmbit('personal')">👤 Personal</button>
-              <button class="type-btn" id="btnNegocio" onclick="setAmbit('negocio')">🏢 Negocio</button>
+              <button class="type-btn active-personal" id="btnPersonal" onclick="setAmbit('personal')">Personal</button>
+              <button class="type-btn" id="btnNegocio" onclick="setAmbit('negocio')">Negocio</button>
             </div>
           </div>
 
@@ -1222,10 +1218,10 @@
       <div style="background:var(--surface); border:1px solid var(--border); border-radius:var(--radius) var(--radius) 0 0; overflow:hidden;">
         <div class="filter-row">
         <button class="filter-chip active" onclick="setFilter('todos', this)">Todos</button>
-        <button class="filter-chip" onclick="setFilter('ingreso', this)">📈 Ingresos</button>
-        <button class="filter-chip" onclick="setFilter('gasto', this)">📉 Gastos</button>
-        <button class="filter-chip" onclick="setFilter('personal', this)">👤 Personal</button>
-        <button class="filter-chip" onclick="setFilter('negocio', this)">🏢 Negocio</button>
+        <button class="filter-chip" onclick="setFilter('ingreso', this)">Ingresos</button>
+        <button class="filter-chip" onclick="setFilter('gasto', this)">Gastos</button>
+        <button class="filter-chip" onclick="setFilter('personal', this)">Personal</button>
+        <button class="filter-chip" onclick="setFilter('negocio', this)">Negocio</button>
         <div style="margin-left:auto; display:flex; gap:8px; align-items:center;">
           <input type="month" id="filterMonth" style="width:140px;" onchange="renderMovimientos()">
           <button class="btn-sm" onclick="exportCSV()">⬇ CSV</button>
@@ -1392,9 +1388,9 @@
               <div class="form-group" style="margin-bottom:14px;">
                 <label>Sincronizar como</label>
                 <div class="type-toggle">
-                  <button class="type-btn active-personal" id="ccBtnPersonal_1" onclick="setCCAmbit(1,'personal')">👤 Personal</button>
-                  <button class="type-btn" id="ccBtnNegocio_1" onclick="setCCAmbit(1,'negocio')">🏢 Negocio</button>
-                  <button class="type-btn" id="ccBtnSolo_1" onclick="setCCAmbit(1,'solo')">💳 Solo TC</button>
+                  <button class="type-btn active-personal" id="ccBtnPersonal_1" onclick="setCCAmbit(1,'personal')">Personal</button>
+                  <button class="type-btn" id="ccBtnNegocio_1" onclick="setCCAmbit(1,'negocio')">Negocio</button>
+                  <button class="type-btn" id="ccBtnSolo_1" onclick="setCCAmbit(1,'solo')">Solo TC</button>
                 </div>
               </div>
               <div class="form-row">
@@ -1450,8 +1446,8 @@
             <button class="filter-chip active" id="ccFiltAll_1" onclick="setCCFilter(1,'todos',this)">Todos</button>
             <button class="filter-chip" onclick="setCCFilter(1,'USD',this)">$ USD</button>
             <button class="filter-chip" onclick="setCCFilter(1,'NIO',this)">C$ Córdoba</button>
-            <button class="filter-chip" onclick="setCCFilter(1,'personal',this)">👤 Personal</button>
-            <button class="filter-chip" onclick="setCCFilter(1,'negocio',this)">🏢 Negocio</button>
+            <button class="filter-chip" onclick="setCCFilter(1,'personal',this)">Personal</button>
+            <button class="filter-chip" onclick="setCCFilter(1,'negocio',this)">Negocio</button>
           </div>
         </div>
         <div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Descripción</th><th>Categoría</th><th>Moneda</th><th>Ámbito</th><th style="text-align:right;">Monto</th><th style="text-align:right;">Equiv. C$</th><th>Ciclo</th><th></th><th></th></tr></thead><tbody id="ccTable_1"></tbody></table></div>
@@ -1509,9 +1505,9 @@
               <div class="form-group" style="margin-bottom:14px;">
                 <label>Sincronizar como</label>
                 <div class="type-toggle">
-                  <button class="type-btn active-personal" id="ccBtnPersonal_2" onclick="setCCAmbit(2,'personal')">👤 Personal</button>
-                  <button class="type-btn" id="ccBtnNegocio_2" onclick="setCCAmbit(2,'negocio')">🏢 Negocio</button>
-                  <button class="type-btn" id="ccBtnSolo_2" onclick="setCCAmbit(2,'solo')">💳 Solo TC</button>
+                  <button class="type-btn active-personal" id="ccBtnPersonal_2" onclick="setCCAmbit(2,'personal')">Personal</button>
+                  <button class="type-btn" id="ccBtnNegocio_2" onclick="setCCAmbit(2,'negocio')">Negocio</button>
+                  <button class="type-btn" id="ccBtnSolo_2" onclick="setCCAmbit(2,'solo')">Solo TC</button>
                 </div>
               </div>
               <div class="form-row">
@@ -1567,8 +1563,8 @@
             <button class="filter-chip active" id="ccFiltAll_2" onclick="setCCFilter(2,'todos',this)">Todos</button>
             <button class="filter-chip" onclick="setCCFilter(2,'USD',this)">$ USD</button>
             <button class="filter-chip" onclick="setCCFilter(2,'NIO',this)">C$ Córdoba</button>
-            <button class="filter-chip" onclick="setCCFilter(2,'personal',this)">👤 Personal</button>
-            <button class="filter-chip" onclick="setCCFilter(2,'negocio',this)">🏢 Negocio</button>
+            <button class="filter-chip" onclick="setCCFilter(2,'personal',this)">Personal</button>
+            <button class="filter-chip" onclick="setCCFilter(2,'negocio',this)">Negocio</button>
           </div>
         </div>
         <div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Descripción</th><th>Categoría</th><th>Moneda</th><th>Ámbito</th><th style="text-align:right;">Monto</th><th style="text-align:right;">Equiv. C$</th><th>Ciclo</th><th></th><th></th></tr></thead><tbody id="ccTable_2"></tbody></table></div>
@@ -1596,32 +1592,32 @@
 // ══════════════════════════════════════════════════
 
 const CATS_PERSONAL = [
-  {id:'alimentacion', label:'🍽 Alimentación', color:'#f97316'},
-  {id:'vivienda', label:'🏠 Vivienda', color:'#06b6d4'},
-  {id:'transporte', label:'🚗 Transporte', color:'#8b5cf6'},
-  {id:'salud', label:'💊 Salud', color:'#ec4899'},
-  {id:'educacion', label:'📚 Educación', color:'#3b82f6'},
-  {id:'ocio', label:'🎮 Ocio', color:'#a78bfa'},
-  {id:'ropa', label:'👕 Ropa', color:'#f59e0b'},
-  {id:'suscripciones', label:'📱 Suscripciones', color:'#10b981'},
-  {id:'inversiones', label:'📈 Inversiones', color:'#22c55e'},
-  {id:'ahorro', label:'🏦 Ahorro', color:'#84cc16'},
-  {id:'servicios', label:'💡 Servicios', color:'#facc15'},
-  {id:'otros_p', label:'📌 Otros', color:'#6b7280'},
+  {id:'alimentacion', label:'Alimentación', color:'#f97316'},
+  {id:'vivienda', label:'Vivienda', color:'#06b6d4'},
+  {id:'transporte', label:'Transporte', color:'#8b5cf6'},
+  {id:'salud', label:'Salud', color:'#ec4899'},
+  {id:'educacion', label:'Educación', color:'#3b82f6'},
+  {id:'ocio', label:'Ocio', color:'#a78bfa'},
+  {id:'ropa', label:'Ropa', color:'#f59e0b'},
+  {id:'suscripciones', label:'Suscripciones', color:'#10b981'},
+  {id:'inversiones', label:'Inversiones', color:'#22c55e'},
+  {id:'ahorro', label:'Ahorro', color:'#84cc16'},
+  {id:'servicios', label:'Servicios', color:'#facc15'},
+  {id:'otros_p', label:'Otros', color:'#6b7280'},
 ];
 
 const CATS_NEGOCIO = [
-  {id:'ventas', label:'💰 Ventas', color:'#22c55e'},
-  {id:'nomina', label:'👥 Nómina', color:'#f97316'},
-  {id:'marketing', label:'📣 Marketing', color:'#a78bfa'},
-  {id:'operaciones', label:'⚙️ Operaciones', color:'#38bdf8'},
-  {id:'tecnologia', label:'💻 Tecnología', color:'#6366f1'},
-  {id:'renta', label:'🏢 Renta', color:'#fb923c'},
-  {id:'impuestos', label:'📋 Impuestos', color:'#f43f5e'},
-  {id:'proveedores', label:'📦 Proveedores', color:'#84cc16'},
-  {id:'logistica', label:'🚚 Logística', color:'#14b8a6'},
-  {id:'capacitacion', label:'🎓 Capacitación', color:'#c084fc'},
-  {id:'otros_n', label:'📌 Otros', color:'#6b7280'},
+  {id:'ventas', label:'Ventas', color:'#22c55e'},
+  {id:'nomina', label:'Nómina', color:'#f97316'},
+  {id:'marketing', label:'Marketing', color:'#a78bfa'},
+  {id:'operaciones', label:'Operaciones', color:'#38bdf8'},
+  {id:'tecnologia', label:'Tecnología', color:'#6366f1'},
+  {id:'renta', label:'Renta', color:'#fb923c'},
+  {id:'impuestos', label:'Impuestos', color:'#f43f5e'},
+  {id:'proveedores', label:'Proveedores', color:'#84cc16'},
+  {id:'logistica', label:'Logística', color:'#14b8a6'},
+  {id:'capacitacion', label:'Capacitación', color:'#c084fc'},
+  {id:'otros_n', label:'Otros', color:'#6b7280'},
 ];
 
 // ══════════════════════════════════════════════════
@@ -2166,8 +2162,7 @@ function renderDashboard() {
 
 function renderResumenSplit(movs) {
   const setCell = (id, val) => {
-    const el = document.getElementById(id);
-    el.textContent = fmt(val);
+    document.getElementById(id).textContent = fmt(val);
   };
   const setBal = (id, val) => {
     const el = document.getElementById(id);
@@ -2180,17 +2175,12 @@ function renderResumenSplit(movs) {
   const nIngr = movs.filter(m=>m.tipo==='ingreso'&&m.ambito==='negocio').reduce((s,m)=>s+m.monto,0);
   const nGasto = movs.filter(m=>m.tipo==='gasto'&&m.ambito==='negocio').reduce((s,m)=>s+m.monto,0);
 
-  setCell('rsPersonalIn', pIngr);
-  setCell('rsPersonalOut', pGasto);
-  setBal('rsPersonalBal', pIngr - pGasto);
-
-  setCell('rsNegocioIn', nIngr);
-  setCell('rsNegocioOut', nGasto);
-  setBal('rsNegocioBal', nIngr - nGasto);
-
-  setCell('rsTotalIn', pIngr + nIngr);
-  setCell('rsTotalOut', pGasto + nGasto);
-  setBal('rsTotalBal', (pIngr + nIngr) - (pGasto + nGasto));
+  setCell('rsGastosPersonal', pGasto);
+  setCell('rsGastosNegocio', nGasto);
+  setCell('rsIngresosPersonal', pIngr);
+  setCell('rsIngresosNegocio', nIngr);
+  setBal('rsBalancePersonal', pIngr - pGasto);
+  setBal('rsBalanceNegocio', nIngr - nGasto);
 }
 
 function renderDonut(movs) {
@@ -2259,7 +2249,7 @@ function renderDashTable(movs) {
       <td style="color:var(--text-muted)">${m.fecha}</td>
       <td>${m.descripcion}</td>
       <td>${ci ? ci.label : '—'}</td>
-      <td><span class="dot dot-${m.ambito}"></span>${m.ambito === 'personal' ? '👤 Personal' : '🏢 Negocio'}</td>
+      <td><span class="dot dot-${m.ambito}"></span>${m.ambito === 'personal' ? 'Personal' : 'Negocio'}</td>
       <td style="text-align:right;" class="${m.tipo==='ingreso'?'amount-positive':'amount-negative'}">${m.tipo==='ingreso'?'+':'-'}${fmt(m.monto)}</td>
     </tr>`;
   }).join('');
@@ -2766,7 +2756,7 @@ function renderCCTable(n) {
     ?`<tr><td colspan="10"><div class="empty-state"><div class="icon">💳</div><p>Sin gastos registrados</p></div></td></tr>`
     :fl.map(g=>{
         const ci=allCats.find(c=>c.id===g.categoria);
-        const al=g.ambito==='solo'?'💳 Solo':g.ambito==='personal'?'👤 Personal':'🏢 Negocio';
+        const al=g.ambito==='solo'?'💳 Solo':g.ambito==='personal'?'Personal':'Negocio';
         return `<tr class="cc-gasto-row"><td style="color:var(--text-muted);">${g.fecha}</td><td>${g.descripcion}${g.ambito!=='solo'?` <span class="sync-indicator" style="font-size:0.65rem;padding:1px 6px;">⇄</span>`:''}</td><td>${ci?ci.label:'—'}</td><td><span class="badge-${g.moneda==='USD'?'usd':'nio'}">${g.moneda}</span></td><td>${al}</td><td style="text-align:right;font-weight:600;color:${g.moneda==='USD'?'var(--card-usd)':ac};">${g.moneda==='USD'?'$':'C$'}${g.montoOrig.toFixed(2)}</td><td style="text-align:right;color:var(--text-muted);">C$${g.montoEquivNIO.toFixed(2)}</td><td><span style="font-size:0.72rem;${getCycleKey(g.fecha,diaCorteT)===cur?'color:'+ac+';font-weight:600;':'color:var(--text-muted);'}">${getCycleLabel(g.cycleKey)}</span></td><td>${g.foto?`<button class="btn-sm" title="Ver foto" onclick="verFotoCC(${n},${g.id})">📷</button>`:''}</td><td><button class="delete-btn" onclick="deleteCCGasto(${n},${g.id})">✕</button></td></tr>`;
       }).join('');
   document.getElementById('ccTotalUSD_'+n).textContent='$'+fl.filter(g=>g.moneda==='USD').reduce((s,g)=>s+g.montoOrig,0).toFixed(2);
