@@ -126,59 +126,61 @@
   .section { display: none; }
   .section.active { display: block; }
 
-  /* ── KPI ROW ── */
-  .kpi-row {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 12px;
-    margin-bottom: 20px;
-  }
-
-  @media (max-width: 900px) { .kpi-row { grid-template-columns: repeat(2, 1fr); } }
-  @media (max-width: 500px) { .kpi-row { grid-template-columns: repeat(2, 1fr); gap: 8px; } }
-
-  .kpi {
+  /* ── RESUMEN SPLIT (Personal / Negocio) ── */
+  .resumen-split {
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    padding: 16px 18px;
-    position: relative;
+    padding: 14px 18px;
+    margin-bottom: 20px;
   }
 
-  .kpi::after {
-    content: '';
-    position: absolute;
-    left: 0; top: 12px; bottom: 12px;
-    width: 3px;
-    border-radius: 0 2px 2px 0;
+  .rs-row {
+    display: grid;
+    grid-template-columns: 1.3fr 1fr 1fr 1fr;
+    align-items: center;
+    padding: 7px 0;
   }
 
-  .kpi.green::after { background: var(--green); }
-  .kpi.red::after { background: var(--red); }
-  .kpi.gold::after { background: var(--blue); }
-  .kpi.blue::after { background: var(--blue-light); }
+  .rs-row + .rs-row { border-top: 1px solid var(--border); }
 
-  .kpi-label {
-    font-size: 0.68rem;
-    color: var(--text-muted);
+  .rs-cell { text-align: right; font-size: 0.86rem; font-weight: 600; }
+
+  .rs-head .rs-cell {
+    font-size: 0.62rem;
+    color: var(--text-light);
     text-transform: uppercase;
-    letter-spacing: 0.07em;
+    letter-spacing: 0.06em;
     font-weight: 600;
-    margin-bottom: 6px;
   }
 
-  .kpi-value {
-    font-family: 'DM Serif Display', serif;
-    font-size: 1.5rem;
-    line-height: 1;
-    margin-bottom: 3px;
-  }
+  .rs-cell.rs-label { text-align: left; font-weight: 600; color: var(--text); font-size: 0.82rem; }
+  .rs-head .rs-cell.rs-label { visibility: hidden; }
 
-  .kpi.green .kpi-value { color: #4ade80; }
-  .kpi.red .kpi-value { color: #f87171; }
-  .kpi.gold .kpi-value { color: #60a5fa; }
-  .kpi.blue .kpi-value { color: #93c5fd; }
-  .kpi-sub { font-size: 0.7rem; color: var(--text-light); }
+  .rs-cell.rs-in { color: var(--green); }
+  .rs-cell.rs-out { color: var(--red); }
+  .rs-cell.rs-bal { font-family: 'DM Serif Display', serif; }
+
+  .rs-row.rs-total { border-top: 2px solid var(--border2); margin-top: 2px; padding-top: 9px; }
+  .rs-row.rs-total .rs-cell { font-size: 0.95rem; }
+
+  .rs-ahorro {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border);
+    font-size: 0.76rem;
+    color: var(--text-muted);
+    text-align: right;
+  }
+  .rs-ahorro strong { color: var(--blue); }
+
+  @media (max-width: 500px) {
+    .resumen-split { padding: 12px 14px; }
+    .rs-row { grid-template-columns: 1fr 0.85fr 0.85fr 0.85fr; }
+    .rs-cell { font-size: 0.76rem; }
+    .rs-cell.rs-label { font-size: 0.72rem; }
+    .rs-row.rs-total .rs-cell { font-size: 0.84rem; }
+  }
 
   /* ── GRID 2COL ── */
   .grid-2 {
@@ -628,12 +630,6 @@
     }
     .tab-icon { display: none; }
 
-    /* KPI row */
-    .kpi-row { grid-template-columns: repeat(2, 1fr); gap: 10px; }
-    .kpi { padding: 14px 12px; }
-    .kpi-value { font-size: 1.3rem; }
-    .kpi-label { font-size: 0.65rem; }
-
     /* Dashboard CC widget */
     #dashCCGrid > div { flex-direction: column; }
 
@@ -697,7 +693,6 @@
   }
 
   @media (max-width: 400px) {
-    .kpi-row { grid-template-columns: 1fr; }
     .cycle-info { grid-template-columns: 1fr; display: grid; }
     .tab { font-size: 0.72rem; padding: 7px 10px; }
     .cc-balance-usd { font-size: 1.1rem; }
@@ -956,28 +951,33 @@
           <button class="nav-btn" onclick="changeMonth(1)">›</button>
         </div>
       </div>
-      <!-- KPIs -->
-      <div class="kpi-row" id="kpiRow">
-      <div class="kpi green">
-        <div class="kpi-label">Total Ingresos</div>
-        <div class="kpi-value" id="kpiIngresos">$0</div>
-        <div class="kpi-sub">Personal + Negocio</div>
-      </div>
-      <div class="kpi red">
-        <div class="kpi-label">Total Gastos</div>
-        <div class="kpi-value" id="kpiGastos">$0</div>
-        <div class="kpi-sub">Personal + Negocio</div>
-      </div>
-      <div class="kpi gold">
-        <div class="kpi-label">Balance Neto</div>
-        <div class="kpi-value" id="kpiBalance">$0</div>
-        <div class="kpi-sub">Ingr. − Gastos</div>
-      </div>
-      <div class="kpi blue">
-        <div class="kpi-label">Tasa de Ahorro</div>
-        <div class="kpi-value" id="kpiAhorro">0%</div>
-        <div class="kpi-sub">Del total de ingresos</div>
-      </div>
+      <!-- Resumen Personal / Negocio -->
+      <div class="resumen-split" id="resumenSplit">
+        <div class="rs-row rs-head">
+          <div class="rs-cell rs-label">—</div>
+          <div class="rs-cell">Ingresos</div>
+          <div class="rs-cell">Gastos</div>
+          <div class="rs-cell">Balance</div>
+        </div>
+        <div class="rs-row">
+          <div class="rs-cell rs-label">👤 Personal</div>
+          <div class="rs-cell rs-in" id="rsPersonalIn">$0</div>
+          <div class="rs-cell rs-out" id="rsPersonalOut">$0</div>
+          <div class="rs-cell rs-bal" id="rsPersonalBal">$0</div>
+        </div>
+        <div class="rs-row">
+          <div class="rs-cell rs-label">🏢 Negocio</div>
+          <div class="rs-cell rs-in" id="rsNegocioIn">$0</div>
+          <div class="rs-cell rs-out" id="rsNegocioOut">$0</div>
+          <div class="rs-cell rs-bal" id="rsNegocioBal">$0</div>
+        </div>
+        <div class="rs-row rs-total">
+          <div class="rs-cell rs-label">Total</div>
+          <div class="rs-cell rs-in" id="rsTotalIn">$0</div>
+          <div class="rs-cell rs-out" id="rsTotalOut">$0</div>
+          <div class="rs-cell rs-bal" id="rsTotalBal">$0</div>
+        </div>
+        <div class="rs-ahorro">💰 Tasa de ahorro: <strong id="kpiAhorro">0%</strong></div>
       </div>
     </div><!-- /section-sticky -->
 
@@ -1043,37 +1043,18 @@
       </div>
     </div>
 
-    <!-- CHARTS ROW -->
-    <div class="grid-2">
-
-      <!-- Distribución por tipo -->
-      <div class="card">
-        <div class="card-header">
-          <div class="card-title">📊 Distribución de Gastos</div>
-          <div class="badge badge-mixed">Por categoría</div>
-        </div>
-        <div id="donutSection" class="donut-section">
-          <div class="empty-state" style="width:100%;">
-            <div class="icon">📊</div>
-            <p>Sin datos aún</p>
-          </div>
+    <!-- Distribución por categoría -->
+    <div class="card full-card">
+      <div class="card-header">
+        <div class="card-title">📊 Distribución de Gastos</div>
+        <div class="badge badge-mixed">Por categoría</div>
+      </div>
+      <div id="donutSection" class="donut-section">
+        <div class="empty-state" style="width:100%;">
+          <div class="icon">📊</div>
+          <p>Sin datos aún</p>
         </div>
       </div>
-
-      <!-- Personal vs Negocio -->
-      <div class="card">
-        <div class="card-header">
-          <div class="card-title">⚖️ Personal vs Negocio</div>
-          <div class="badge badge-mixed">Gastos</div>
-        </div>
-        <div id="compareSection" style="padding:20px 22px;">
-          <div class="empty-state">
-            <div class="icon">⚖️</div>
-            <p>Sin datos aún</p>
-          </div>
-        </div>
-      </div>
-
     </div>
 
     <!-- Últimos movimientos -->
@@ -2172,23 +2153,44 @@ function renderDashboard() {
   const balance = ingresos - gastos;
   const ahorro = ingresos > 0 ? ((balance/ingresos)*100) : 0;
 
-  document.getElementById('kpiIngresos').textContent = fmt(ingresos);
-  document.getElementById('kpiGastos').textContent = fmt(gastos);
-
-  const balEl = document.getElementById('kpiBalance');
-  balEl.textContent = fmt(balance);
-  balEl.closest('.kpi').querySelector('.kpi-label').textContent = 'Balance Neto';
-  balEl.style.color = balance >= 0 ? '#1a8c5b' : '#d93025';
-
+  renderResumenSplit(movs);
   document.getElementById('kpiAhorro').textContent = ahorro.toFixed(1) + '%';
 
   // Donut
   renderDonut(movs);
-  renderCompare(movs);
   renderDashTable(movs);
   if (typeof renderCCDashWidget === 'function') renderCCDashWidget();
   // Ganancia negocio
   loadGananciaBruta();
+}
+
+function renderResumenSplit(movs) {
+  const setCell = (id, val) => {
+    const el = document.getElementById(id);
+    el.textContent = fmt(val);
+  };
+  const setBal = (id, val) => {
+    const el = document.getElementById(id);
+    el.textContent = fmt(val);
+    el.style.color = val >= 0 ? '#1a8c5b' : '#d93025';
+  };
+
+  const pIngr = movs.filter(m=>m.tipo==='ingreso'&&m.ambito==='personal').reduce((s,m)=>s+m.monto,0);
+  const pGasto = movs.filter(m=>m.tipo==='gasto'&&m.ambito==='personal').reduce((s,m)=>s+m.monto,0);
+  const nIngr = movs.filter(m=>m.tipo==='ingreso'&&m.ambito==='negocio').reduce((s,m)=>s+m.monto,0);
+  const nGasto = movs.filter(m=>m.tipo==='gasto'&&m.ambito==='negocio').reduce((s,m)=>s+m.monto,0);
+
+  setCell('rsPersonalIn', pIngr);
+  setCell('rsPersonalOut', pGasto);
+  setBal('rsPersonalBal', pIngr - pGasto);
+
+  setCell('rsNegocioIn', nIngr);
+  setCell('rsNegocioOut', nGasto);
+  setBal('rsNegocioBal', nIngr - nGasto);
+
+  setCell('rsTotalIn', pIngr + nIngr);
+  setCell('rsTotalOut', pGasto + nGasto);
+  setBal('rsTotalBal', (pIngr + nIngr) - (pGasto + nGasto));
 }
 
 function renderDonut(movs) {
@@ -2241,42 +2243,6 @@ function renderDonut(movs) {
       <text x="60" y="64" text-anchor="middle" fill="#0d1f3c" font-size="11" font-family="DM Serif Display">${fmt(total)}</text>
     </svg>
     <div class="donut-legend">${legend}</div>`;
-}
-
-function renderCompare(movs) {
-  const pGasto = movs.filter(m=>m.tipo==='gasto'&&m.ambito==='personal').reduce((s,m)=>s+m.monto,0);
-  const nGasto = movs.filter(m=>m.tipo==='gasto'&&m.ambito==='negocio').reduce((s,m)=>s+m.monto,0);
-  const pIngr = movs.filter(m=>m.tipo==='ingreso'&&m.ambito==='personal').reduce((s,m)=>s+m.monto,0);
-  const nIngr = movs.filter(m=>m.tipo==='ingreso'&&m.ambito==='negocio').reduce((s,m)=>s+m.monto,0);
-  const total = pGasto + nGasto || 1;
-
-  document.getElementById('compareSection').innerHTML = `
-    <div style="display:flex;flex-direction:column;gap:20px;">
-      <div>
-        <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
-          <span style="color:var(--personal);font-weight:600;font-size:0.85rem;">👤 Personal</span>
-          <span style="font-size:0.82rem;color:var(--text-muted);">In: ${fmt(pIngr)} | Out: ${fmt(pGasto)}</span>
-        </div>
-        <div class="progress-bar"><div class="progress-fill" style="width:${(pGasto/total*100).toFixed(1)}%;background:var(--personal);"></div></div>
-      </div>
-      <div>
-        <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
-          <span style="color:var(--business);font-weight:600;font-size:0.85rem;">🏢 Negocio</span>
-          <span style="font-size:0.82rem;color:var(--text-muted);">In: ${fmt(nIngr)} | Out: ${fmt(nGasto)}</span>
-        </div>
-        <div class="progress-bar"><div class="progress-fill" style="width:${(nGasto/total*100).toFixed(1)}%;background:var(--business);"></div></div>
-      </div>
-      <div style="border-top:1px solid var(--border);padding-top:14px;display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-        <div style="text-align:center;">
-          <div style="font-size:0.7rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">Bal. Personal</div>
-          <div style="font-size:1.1rem;font-family:'DM Serif Display',serif;color:${pIngr-pGasto>=0?'#1a8c5b':'#d93025'};">${fmt(pIngr-pGasto)}</div>
-        </div>
-        <div style="text-align:center;">
-          <div style="font-size:0.7rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">Bal. Negocio</div>
-          <div style="font-size:1.1rem;font-family:'DM Serif Display',serif;color:${nIngr-nGasto>=0?'#1a8c5b':'#d93025'};">${fmt(nIngr-nGasto)}</div>
-        </div>
-      </div>
-    </div>`;
 }
 
 function renderDashTable(movs) {
