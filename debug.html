@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Diagnóstico Supabase</title>
+<style>
+  body { font-family: -apple-system, sans-serif; background:#0a0d12; color:#fff; padding:20px; font-size:15px; line-height:1.5; }
+  h2 { color:#4ade80; }
+  .box { background:#1a1f28; border:1px solid #333; border-radius:10px; padding:14px; margin-bottom:14px; white-space:pre-wrap; word-break:break-word; }
+  .ok { color:#4ade80; }
+  .fail { color:#f87171; font-weight:bold; }
+  button { background:#2176d2; color:#fff; border:none; padding:12px 20px; border-radius:8px; font-size:15px; margin-bottom:16px; }
+</style>
+</head>
+<body>
+<h2>Diagnóstico de conexión</h2>
+<div class="box">Página cargada correctamente ✓<br>Hora: <span id="now"></span><br>User Agent: <span id="ua"></span></div>
+
+<button onclick="runTests()">Probar conexión a Supabase</button>
+
+<div class="box" id="result1">1) Prueba GET /rest/v1/movimientos — esperando...</div>
+<div class="box" id="result2">2) Prueba POST /auth/v1/token (login) — esperando...</div>
+
+<script>
+document.getElementById('now').textContent = new Date().toString();
+document.getElementById('ua').textContent = navigator.userAgent;
+
+const SB_URL = 'https://uqzizrsltrdnsibwjyjx.supabase.co';
+const SB_KEY = 'sb_publishable_RwEYwumkhFV2dlSrNBACDw_oV7PvCI1';
+
+async function runTests() {
+  const r1 = document.getElementById('result1');
+  r1.textContent = '1) Probando GET /rest/v1/movimientos ...';
+  try {
+    const res = await fetch(`${SB_URL}/rest/v1/movimientos?select=id&limit=1`, {
+      method: 'GET',
+      headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` },
+    });
+    const text = await res.text();
+    r1.innerHTML = '1) GET movimientos<br>Status: ' + res.status + '<br>Respuesta: ' + text.slice(0, 300);
+    r1.className = 'box ' + (res.status < 500 ? 'ok' : 'fail');
+  } catch (e) {
+    r1.innerHTML = '1) GET movimientos<br><span class="fail">ERROR: ' + (e && e.message ? e.message : String(e)) + '</span><br>Tipo: ' + (e && e.name) + '<br>Stack: ' + (e && e.stack ? e.stack.slice(0,400) : 'n/a');
+  }
+
+  const r2 = document.getElementById('result2');
+  r2.textContent = '2) Probando POST /auth/v1/token ...';
+  try {
+    const res = await fetch(`${SB_URL}/auth/v1/token?grant_type=password`, {
+      method: 'POST',
+      headers: { 'apikey': SB_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: 'test-diagnostico@example.com', password: 'xxxxxxxx' }),
+    });
+    const text = await res.text();
+    r2.innerHTML = '2) POST auth/token<br>Status: ' + res.status + '<br>Respuesta: ' + text.slice(0, 300);
+    r2.className = 'box ' + (res.status < 500 ? 'ok' : 'fail');
+  } catch (e) {
+    r2.innerHTML = '2) POST auth/token<br><span class="fail">ERROR: ' + (e && e.message ? e.message : String(e)) + '</span><br>Tipo: ' + (e && e.name) + '<br>Stack: ' + (e && e.stack ? e.stack.slice(0,400) : 'n/a');
+  }
+}
+</script>
+</body>
+</html>
