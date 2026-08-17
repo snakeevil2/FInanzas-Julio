@@ -1937,7 +1937,7 @@ function sbToCC(r) {
     foto: r.foto || null };
 }
 
-async function cloudLoad() {
+async function cloudLoad(silent) {
   try {
     setSyncStatus('loading');
     const [movs, pres, cc1, cc2] = await Promise.all([
@@ -1957,9 +1957,11 @@ async function cloudLoad() {
     return true;
   } catch(e) {
     const detail = (e && e.message) || String(e);
-    setSyncStatus('error', detail);
     console.warn('Cloud load failed:', e);
-    showToast('⚠️ ' + detail);
+    if (!silent) {
+      setSyncStatus('error', detail);
+      showToast('⚠️ ' + detail);
+    }
     return false;
   }
 }
@@ -1999,13 +2001,19 @@ async function cloudDeleteCC(n, id) {
 
 async function manualSync() {
   setSyncStatus('loading');
-  const loaded = await cloudLoad();
+  // Primer intento en silencio: en conexiones debiles el primer intento a veces
+  // falla solo y el segundo pasa bien, sin necesidad de mostrar un error confuso.
+  let loaded = await cloudLoad(true);
+  if (!loaded) {
+    await new Promise(r => setTimeout(r, 1500));
+    loaded = await cloudLoad();
+  }
   if (loaded) {
     renderDashboard(); renderMovimientos(); renderBudgetUI();
     renderTarjetaCard(1); renderTarjetaCard(2);
     showToast('☁️ Sincronizado ✓');
   }
-  // Si falló, cloudLoad() ya mostró el error real en el toast — no lo pisamos aquí.
+  // Si sigue fallando tras el reintento, cloudLoad() ya mostró el error real.
 }
 
 function save() {
