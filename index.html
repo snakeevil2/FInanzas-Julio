@@ -1826,6 +1826,32 @@ async function doResetPassword() {
   }
 }
 
+// Guarda en localStorage sin nunca tronar: si el espacio local se llena
+// (tipico con muchas fotos guardadas), reintenta sin las fotos en vez de
+// interrumpir el guardado real en la nube. Esta cache local solo sirve
+// para que la app abra con datos al instante mientras llega lo real de
+// Supabase -- perder las fotos ahi (no en la nube) no afecta nada.
+function safeLocalSet(key, jsonValue) {
+  try {
+    localStorage.setItem(key, jsonValue);
+  } catch (e) {
+    console.warn('localStorage lleno para', key, '- reintentando sin fotos:', e);
+    try {
+      const arr = JSON.parse(jsonValue);
+      if (Array.isArray(arr)) {
+        const stripped = arr.map(item => {
+          if (item && item.foto) { const { foto, ...rest } = item; return rest; }
+          return item;
+        });
+        localStorage.setItem(key, JSON.stringify(stripped));
+      }
+    } catch (e2) {
+      console.warn('No se pudo guardar', key, 'ni siquiera sin fotos:', e2);
+      try { localStorage.removeItem(key); } catch (e3) {}
+    }
+  }
+}
+
 let state = {
   movimientos: JSON.parse(localStorage.getItem('fm_movs') || '[]'),
   presupuestos: JSON.parse(localStorage.getItem('fm_budgets') || '[]'),
@@ -1948,10 +1974,10 @@ async function cloudLoad(silent) {
     ]);
     state.movimientos = movs.map(sbToMov);
     state.presupuestos = pres.map(sbToPres);
-    localStorage.setItem('fm_movs', JSON.stringify(state.movimientos));
+    safeLocalSet('fm_movs', JSON.stringify(state.movimientos));
     localStorage.setItem('fm_budgets', JSON.stringify(state.presupuestos));
-    localStorage.setItem('fm_cc_gastos_1', JSON.stringify(cc1.map(sbToCC)));
-    localStorage.setItem('fm_cc_gastos_2', JSON.stringify(cc2.map(sbToCC)));
+    safeLocalSet('fm_cc_gastos_1', JSON.stringify(cc1.map(sbToCC)));
+    safeLocalSet('fm_cc_gastos_2', JSON.stringify(cc2.map(sbToCC)));
     state.lastSync = new Date();
     setSyncStatus('ok');
     return true;
@@ -1967,7 +1993,7 @@ async function cloudLoad(silent) {
 }
 
 async function cloudSave() {
-  localStorage.setItem('fm_movs', JSON.stringify(state.movimientos));
+  safeLocalSet('fm_movs', JSON.stringify(state.movimientos));
   localStorage.setItem('fm_budgets', JSON.stringify(state.presupuestos));
   try {
     setSyncStatus('saving');
@@ -2169,7 +2195,7 @@ async function initApp() {
   // Auto-save on page close
   window.addEventListener('beforeunload', () => {
     // Guardar local al cerrar (la nube ya se guardó en cada movimiento)
-    localStorage.setItem('fm_movs', JSON.stringify(state.movimientos));
+    safeLocalSet('fm_movs', JSON.stringify(state.movimientos));
     localStorage.setItem('fm_budgets', JSON.stringify(state.presupuestos));
   });
 };
@@ -2526,7 +2552,7 @@ function renderMovimientos() {
 async function deleteMov(id) {
   if (!confirm('¿Eliminar este movimiento?')) return;
   state.movimientos = state.movimientos.filter(m=>m.id!==id);
-  localStorage.setItem('fm_movs', JSON.stringify(state.movimientos));
+  safeLocalSet('fm_movs', JSON.stringify(state.movimientos));
   // Borrar directamente en Supabase — sin caché
   await cloudDeleteMov(id);
   renderDashboard();
@@ -2869,7 +2895,7 @@ function agregarGastoTarjeta(n) {
   const gastoCC={id:Date.now(),fecha,descripcion:desc,categoria:cat,moneda:cur,montoOrig:monto,montoEquivNIO,tasa:cur==='USD'?tasa:1,ambito:ambit,notas,cycleKey,card:n,foto};
   const ccGastos=JSON.parse(localStorage.getItem('fm_cc_gastos_'+n)||'[]');
   ccGastos.unshift(gastoCC);
-  localStorage.setItem('fm_cc_gastos_'+n, JSON.stringify(ccGastos));
+  safeLocalSet('fm_cc_gastos_'+n, JSON.stringify(ccGastos));
   const cfg=JSON.parse(localStorage.getItem('fm_cc_config_'+n)||'{}');
   const lbl=cfg.nombre?`TC${n}:${cfg.nombre}`:`TC${n}`;
   if(ambit!=='solo'){
@@ -2894,10 +2920,10 @@ async function deleteCCGasto(n, id) {
   if(!confirm('¿Eliminar este gasto?')) return;
   const cc=JSON.parse(localStorage.getItem('fm_cc_gastos_'+n)||'[]');
   const g=cc.find(x=>x.id===id);
-  localStorage.setItem('fm_cc_gastos_'+n, JSON.stringify(cc.filter(x=>x.id!==id)));
+  safeLocalSet('fm_cc_gastos_'+n, JSON.stringify(cc.filter(x=>x.id!==id)));
   if(g&&g.ambito!=='solo'){
     state.movimientos=state.movimientos.filter(m=>m.ccSyncId!==id);
-    localStorage.setItem('fm_movs', JSON.stringify(state.movimientos));
+    safeLocalSet('fm_movs', JSON.stringify(state.movimientos));
     await cloudDeleteMov(g.ccSyncId);
     renderDashboard(); renderMovimientos();
   }
