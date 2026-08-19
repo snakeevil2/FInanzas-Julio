@@ -2035,8 +2035,8 @@ function handleFotoInput(event) {
     fotoActual = dataUrl;
     document.getElementById('fotoPreview').src = dataUrl;
     document.getElementById('fotoPreviewWrap').style.display = 'block';
-  }).catch(() => {
-    showToast('⚠️ No se pudo procesar la foto');
+  }).catch(e => {
+    showToast('⚠️ ' + ((e && e.message) || 'No se pudo procesar la foto'));
   });
   event.target.value = '';
 }
@@ -2050,12 +2050,16 @@ function quitarFoto() {
 
 function comprimirFoto(file) {
   return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onerror = reject;
-    reader.onload = () => {
-      const img = new Image();
-      img.onerror = reject;
-      img.onload = () => {
+    if (file.size > 20 * 1024 * 1024) {
+      reject(new Error('La foto es demasiado pesada (más de 20MB)'));
+      return;
+    }
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('No se pudo leer la imagen')); };
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      try {
         const maxDim = 1000;
         let { width, height } = img;
         if (width > maxDim || height > maxDim) {
@@ -2067,10 +2071,11 @@ function comprimirFoto(file) {
         canvas.height = height;
         canvas.getContext('2d').drawImage(img, 0, 0, width, height);
         resolve(canvas.toDataURL('image/jpeg', 0.65));
-      };
-      img.src = reader.result;
+      } catch (e) {
+        reject(e);
+      }
     };
-    reader.readAsDataURL(file);
+    img.src = url;
   });
 }
 
@@ -2083,8 +2088,8 @@ function handleCCFotoInput(n, event) {
     ccFotoActual[n] = dataUrl;
     document.getElementById('ccFotoPreview_'+n).src = dataUrl;
     document.getElementById('ccFotoPreviewWrap_'+n).style.display = 'block';
-  }).catch(() => {
-    showToast('⚠️ No se pudo procesar la foto');
+  }).catch(e => {
+    showToast('⚠️ ' + ((e && e.message) || 'No se pudo procesar la foto'));
   });
   event.target.value = '';
 }
